@@ -42,6 +42,10 @@ If you prefer to set things up manually:
 3. **Install Deps**: `pip install -r requirements.txt`
 4. **Run**: `python dorkmaster_pro.py`
 
+> [!TIP]
+> **Linux Users**: If you encounter `PermissionError` when running `run.sh`, try running:
+> `sudo chown -R $USER:$USER .`
+
 ### Main Menu Options:
 1. **Search Dorks**: Find specific dorks by keyword.
 2. **Update Database**: Scrape latest dorks from Exploit-DB.
