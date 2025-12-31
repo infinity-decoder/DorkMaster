@@ -1,5 +1,6 @@
-import time
 import random
+import webbrowser
+import urllib.parse
 from googlesearch import search
 from tabulate import tabulate
 from colorama import Fore, Style
@@ -72,6 +73,22 @@ class SearchEngine:
             else:
                  self.ui.display_message(f"Search failed: {e}", "error")
             return []
+
+    def run_in_browser(self, dork_text):
+        """
+        Opens the dork search in the default web browser.
+        """
+        self.ui.display_message("Launching live search in browser...", "info")
+        encoded_dork = urllib.parse.quote_plus(dork_text)
+        search_url = f"https://www.google.com/search?q={encoded_dork}"
+        
+        try:
+            webbrowser.open(search_url)
+            self.ui.display_message("Browser launched successfully.", "secondary")
+            return True
+        except Exception as e:
+            self.ui.display_message(f"Failed to launch browser: {e}", "error")
+            return False
 
     def format_results_table(self, results):
         if not results:
