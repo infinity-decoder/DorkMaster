@@ -22,7 +22,8 @@ DorkMaster Pro is a high-performance, terminal-based reconnaissance intelligence
 
 ### 🎨 Premium User Experience
 - **Cyberpunk UI**: A vibrant, high-contrast visual theme with icon-enhanced menus and box-drawing banners.
-- **Tactical Navigation**: Complete support for both arrow-key selection and **Direct Numeric Input** (type `1-8` for instant action).
+- **Simplified Navigation**: Every sub-menu and details page features a clear **Return to Main Menu** option.
+- **Direct Numeric Input**: Support for lightning-fast command execution (type `1-8` for instant action).
 - **Persistent Pagination**: The system remembers your page position even when jumping between dork details and list views.
 - **In-place Editing**: Modify dork queries on-the-fly with smart pre-filled prompts.
 
@@ -55,15 +56,15 @@ DorkMaster Pro features an **Automated Setup and Sync** system. Every launch aut
 
 ---
 
-## 🎯 Tactical Menu Hub
+## 🎯 Main Menu Options
 
-1. **Search Intelligence Database**: Query the 7000+ local dorks by keyword or title.
-2. **Incremental Update**: Fetch only the latest additions from GHDB.
-3. **Full Database Synchronization**: (Recommended first run) Sync the entire GHDB library.
-4. **Browse Intelligence by Category**: Explore organized vulnerabilities (Files containing juicy info, etc.).
+1. **Search for Dorks**: Query the 7000+ local dorks by keyword or title.
+2. **Check for New Dorks**: Fetch only the latest additions from GHDB.
+3. **Sync Complete GHDB Library**: (Recommended first run) Sync the entire GHDB library.
+4. **Browse Dorks by Category**: Explore organized vulnerabilities (Files containing juicy info, etc.).
 5. **Quick Execution (Raw Dork)**: Immediately run any dork query without local database lookup.
 6. **View System Statistics**: Check dork counts and last synchronization timestamps.
-7. **Export Intelligence**: Export results to JSON/CSV (Beta).
+7. **Export Results**: Export results to JSON/CSV (Beta).
 8. **Terminate Session**: Securely close the DorkMaster Hub.
 
 ---

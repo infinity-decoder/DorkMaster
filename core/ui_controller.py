@@ -52,13 +52,13 @@ class UIController:
         print(f"╚══════════════════════════════════════════════════════════╝")
         
         choices = [
-            questionary.Choice("🔍 [1] Search Intelligence Database", value="1"),
-            questionary.Choice("📥 [2] Incremental Update (Newest Only)", value="2"),
-            questionary.Choice("🔄 [3] Full Database Synchronization", value="3"),
-            questionary.Choice("📂 [4] Browse Intelligence by Category", value="4"),
+            questionary.Choice("🔍 [1] Search for Dorks", value="1"),
+            questionary.Choice("📥 [2] Check for New Dorks", value="2"),
+            questionary.Choice("🔄 [3] Sync Complete GHDB Library", value="3"),
+            questionary.Choice("📂 [4] Browse Dorks by Category", value="4"),
             questionary.Choice("⚡ [5] Quick Execution (Raw Dork)", value="5"),
             questionary.Choice("📊 [6] View System Statistics", value="6"),
-            questionary.Choice("📤 [7] Export Intelligence (JSON/CSV)", value="7"),
+            questionary.Choice("📤 [7] Export Results (JSON/CSV)", value="7"),
             questionary.Choice("❌ [8] Terminate Session", value="8")
         ]
         
@@ -118,7 +118,7 @@ class UIController:
             "edit": "Edit before running", 
             "fav": "Save to favorites", 
             "back": "Back to results",
-            "hub": "Return to Hub"
+            "hub": "Return to Main Menu"
         }
         return mapping.get(res)
 
@@ -150,17 +150,17 @@ class UIController:
             btn_count = 1
             
             if end < total_results:
-                nav_choices.append(questionary.Choice(f"➡️  [{btn_count}] Next Intel Page", value="next"))
+                nav_choices.append(questionary.Choice(f"➡️  [{btn_count}] Next Page", value="next"))
                 btn_count += 1
             
             if current_page > 0:
-                nav_choices.append(questionary.Choice(f"⬅️  [{btn_count}] Previous Intel Page", value="prev"))
+                nav_choices.append(questionary.Choice(f"⬅️  [{btn_count}] Previous Page", value="prev"))
                 btn_count += 1
             
-            nav_choices.append(questionary.Choice(f"🎯 [{btn_count}] Select Intel by ID", value="select"))
+            nav_choices.append(questionary.Choice(f"🎯 [{btn_count}] Select Dork by ID", value="select"))
             btn_count += 1
             
-            nav_choices.append(questionary.Choice(f"🏠 [{btn_count}] Return to Tactical Hub", value="home"))
+            nav_choices.append(questionary.Choice(f"🏠 [{btn_count}] Return to Main Menu", value="home"))
             
             selection = questionary.select(
                 "Navigation Command:",

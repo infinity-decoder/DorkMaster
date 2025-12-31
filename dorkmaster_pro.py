@@ -138,7 +138,7 @@ class DorkMasterPro:
         if action == "Back to results":
             return "back"
             
-        elif action == "Return to Hub":
+        elif action == "Return to Main Menu":
             return "hub"
             
         elif action == "Save to favorites":
