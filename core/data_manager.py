@@ -11,6 +11,7 @@ class DataManager:
             self.file_path = file_path
         
         self.data = {"dorks": [], "categories": {}, "last_update": "Never", "total_dorks": 0}
+        self.dork_set = set()
         self._load_data()
 
     def _load_data(self):
@@ -19,6 +20,8 @@ class DataManager:
             try:
                 with open(self.file_path, "r", encoding="utf-8") as f:
                     self.data = json.load(f)
+                # Populate the set for fast lookup
+                self.dork_set = {d["dork_text"] for d in self.data.get("dorks", [])}
             except (json.JSONDecodeError, Exception) as e:
                 print(f"[!] Error loading JSON data: {e}. Starting fresh.")
                 self.save_data()
@@ -36,10 +39,10 @@ class DataManager:
 
     def add_dork(self, title, dork_text, category_name, date_published=None, url=None):
         """Adds a dork if it doesn't already exist."""
-        # Check for duplicates based on dork_text
-        if any(d["dork_text"] == dork_text for d in self.data["dorks"]):
+        # Fast duplicate check using set
+        if dork_text in self.dork_set:
             return False
-
+        
         dork_entry = {
             "id": len(self.data["dorks"]) + 1,
             "title": title,
@@ -52,6 +55,7 @@ class DataManager:
         }
         
         self.data["dorks"].append(dork_entry)
+        self.dork_set.add(dork_text)
         
         # Track categories
         if category_name not in self.data["categories"]:

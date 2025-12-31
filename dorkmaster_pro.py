@@ -54,15 +54,24 @@ class DorkMasterPro:
                     if selected:
                         self.handle_dork_selection(selected)
             
-            elif choice == "2": # Update Database
+            elif choice == "2": # Incremental Update
                 total_dorks, _ = self.data_mgr.get_stats()
-                self.ui.display_message(f"Local system has {total_dorks} dorks.", "info")
-                self.ui.display_message("Checking for updates...", "info")
+                self.ui.display_message(f"Current local dorks: {total_dorks}", "info")
+                self.ui.display_message("Checking for newest additions...", "info")
                 new_count = self.scraper.update_incremental()
                 self.ui.display_message(f"Update complete. {new_count} new dorks added.", "secondary")
                 input("\nPress Enter to return...")
 
-            elif choice == "3": # Browse by Category
+            elif choice == "3": # Full Sync
+                total_dorks, _ = self.data_mgr.get_stats()
+                self.ui.display_message(f"Total local dorks: {total_dorks}", "info")
+                confirm = questionary.confirm("This will fetch all 7000+ dorks. It may take a few minutes. Continue?").ask()
+                if confirm:
+                    new_count = self.scraper.fetch_all_dorks()
+                    self.ui.display_message(f"Synchronization complete! Added {new_count} dorks.", "secondary")
+                input("\nPress Enter to return...")
+
+            elif choice == "4": # Browse by Category
                 categories = self.data_mgr.get_all_categories()
                 cat_choices = [f"{name}" for name, cid in categories]
                 cat_choices.append("Back to Main Menu")
@@ -74,7 +83,7 @@ class DorkMasterPro:
                     if selected:
                         self.handle_dork_selection(selected)
 
-            elif choice == "4": # Quick Search (Run immediate)
+            elif choice == "5": # Quick Search (Run immediate)
                 dork_text = questionary.text("Enter dork to run:").ask()
                 if dork_text:
                     self.current_results = self.searcher.execute(dork_text)
@@ -82,23 +91,18 @@ class DorkMasterPro:
                     print(self.searcher.format_results_table(self.current_results))
                     input("\nPress Enter to return to menu...")
 
-            elif choice == "5": # Recent Dorks (Placeholder/Last update info)
+            elif choice == "6": # Show Stats
                 last_update = self.data_mgr.get_last_update()
                 total_dorks, total_cats = self.data_mgr.get_stats()
                 self.ui.display_banner()
-                print(f"{Fore.CYAN}--- Database Statistics ---")
-                print(f"Total Dorks: {total_dorks}")
-                print(f"Total Categories: {total_cats}")
-                print(f"Last Update: {last_update}")
+                print(f"{Fore.CYAN}--- System Statistics ---")
+                print(f"Total Local Dorks : {total_dorks}")
+                print(f"Total Categories   : {total_cats}")
+                print(f"Last Synchronization: {last_update}")
                 input("\nPress Enter to return...")
 
-            elif choice == "6": # Export Dorks (Dummy/Basic)
-                self.ui.display_message("Exporting all dorks to data/export_dorks.json...", "info")
-                # Implementation details for full export can be added here
-                input("\nFeature coming soon... Press Enter to return.")
-
-            elif choice == "7": # Settings
-                self.ui.display_message("Settings menu.", "info")
+            elif choice == "7": # Export
+                self.ui.display_message("Exporting (Mock)...", "info")
                 input("\nFeature coming soon... Press Enter to return.")
 
             elif choice == "8": # Exit

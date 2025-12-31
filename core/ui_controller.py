@@ -35,31 +35,25 @@ class UIController:
         print(f"{self.COLORS['secondary']}" + "-" * 50 + "\n")
 
     def main_menu(self):
-        self.display_banner()
         choices = [
-            "[1] Search Dorks",
-            "[2] Update Dork Database",
-            "[3] Browse by Category",
-            "[4] Quick Dork Search",
-            "[5] Recent Dorks",
-            "[6] Export Dorks",
-            "[7] Settings",
-            "[8] Exit"
+            questionary.Choice("[1] Search Dorks", value="1"),
+            questionary.Choice("[2] Incremental Update (Newest Only)", value="2"),
+            questionary.Choice("[3] Full Database Synchronization", value="3"),
+            questionary.Choice("[4] Browse by Category", value="4"),
+            questionary.Choice("[5] Quick Search (Raw Dork)", value="5"),
+            questionary.Choice("[6] Database Statistics", value="6"),
+            questionary.Choice("[7] Export Dorks (JSON/CSV)", value="7"),
+            questionary.Choice("[8] Exit", value="8")
         ]
-        
-        selection = questionary.select(
+        return questionary.select(
             "Main Menu:",
             choices=choices,
             style=questionary.Style([
-                ('qmark', 'fg:#00ffff bold'),
-                ('question', 'fg:#00ffff bold'),
-                ('pointer', 'fg:#00ff00 bold'),
-                ('highlighted', 'fg:#00ff00 bold'),
-                ('selected', 'fg:#00ff00'),
+                ('qmark', 'fg:#673ab7 bold'),
+                ('question', 'fg:#000000 bold'),
+                ('selected', 'fg:#673ab7 bold')
             ])
         ).ask()
-        
-        if selection:
             return selection.split("]")[0].strip("[")
         return None
 
