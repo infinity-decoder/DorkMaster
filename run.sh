@@ -1,4 +1,7 @@
 #!/bin/bash
+echo "[*] Checking for updates..."
+git pull origin main
+
 if [ ! -d ".venv" ]; then
     echo "[*] Environment not found. Running setup..."
     python3 setup.py

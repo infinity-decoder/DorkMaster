@@ -18,7 +18,7 @@ DorkMaster Pro is a professional-grade, terminal-based reconnaissance tool desig
 
 ## 🛠️ Installation & Setup
 
-DorkMaster Pro features an automatic setup script that handles environment creation and dependency installation.
+DorkMaster Pro features an automatic setup and update system. Every time you launch the tool, it checks for the latest version from GitHub.
 
 ### 🪟 Windows
 Just double-click `run.bat` or run:
