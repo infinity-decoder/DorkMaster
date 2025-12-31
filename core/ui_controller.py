@@ -102,7 +102,8 @@ class UIController:
             questionary.Choice("🚀 [1] Run Dork (Execution Hub)", value="run"),
             questionary.Choice("📝 [2] Edit Query before execution", value="edit"),
             questionary.Choice("⭐ [3] Save to Mission Favorites", value="fav"),
-            questionary.Choice("🔙 [4] Return to Intel List", value="back")
+            questionary.Choice("🔙 [4] Return to Intel List", value="back"),
+            questionary.Choice("🏠 [5] Return to Tactical Hub", value="hub")
         ]
         
         res = questionary.select(
@@ -112,7 +113,13 @@ class UIController:
             style=self.GLOBAL_STYLE
         ).ask()
         
-        mapping = {"run": "Run as is", "edit": "Edit before running", "fav": "Save to favorites", "back": "Back to results"}
+        mapping = {
+            "run": "Run as is", 
+            "edit": "Edit before running", 
+            "fav": "Save to favorites", 
+            "back": "Back to results",
+            "hub": "Return to Hub"
+        }
         return mapping.get(res)
 
     def paginate_results(self, results, page_size=10, title="Search Results", start_page=0):
@@ -140,15 +147,20 @@ class UIController:
             print(tabulate(table_data, headers=["#", "Title", "Dork"], tablefmt="grid"))
             
             nav_choices = []
-            if end < total_results:
-                nav_choices.append(questionary.Choice("➡️  [1] Next Intel Page", value="next"))
-            if current_page > 0:
-                nav_choices.append(questionary.Choice("⬅️  [2] Previous Intel Page", value="prev"))
+            btn_count = 1
             
-            nav_choices.extend([
-                questionary.Choice("🎯 [3] Select Intel by ID", value="select"),
-                questionary.Choice("🏠 [4] Return to Tactical Hub", value="home")
-            ])
+            if end < total_results:
+                nav_choices.append(questionary.Choice(f"➡️  [{btn_count}] Next Intel Page", value="next"))
+                btn_count += 1
+            
+            if current_page > 0:
+                nav_choices.append(questionary.Choice(f"⬅️  [{btn_count}] Previous Intel Page", value="prev"))
+                btn_count += 1
+            
+            nav_choices.append(questionary.Choice(f"🎯 [{btn_count}] Select Intel by ID", value="select"))
+            btn_count += 1
+            
+            nav_choices.append(questionary.Choice(f"🏠 [{btn_count}] Return to Tactical Hub", value="home"))
             
             selection = questionary.select(
                 "Navigation Command:",

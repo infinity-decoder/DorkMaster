@@ -54,7 +54,9 @@ class DorkMasterPro:
                     while True:
                         selected, page = self.ui.paginate_results(results, title=f"Search Results for '{keyword}'", start_page=page)
                         if selected:
-                            self.handle_dork_selection(selected)
+                            result = self.handle_dork_selection(selected)
+                            if result == "hub":
+                                break
                         else:
                             break
             
@@ -87,7 +89,9 @@ class DorkMasterPro:
                     while True:
                         selected, page = self.ui.paginate_results(results, title=f"Dorks in {cat_sel}", start_page=page)
                         if selected:
-                            self.handle_dork_selection(selected)
+                            result = self.handle_dork_selection(selected)
+                            if result == "hub":
+                                break
                         else:
                             break
                     
@@ -132,12 +136,15 @@ class DorkMasterPro:
         action = self.ui.show_dork_details(d_id, title, text, category, date, url)
         
         if action == "Back to results":
-            return
+            return "back"
+            
+        elif action == "Return to Hub":
+            return "hub"
             
         elif action == "Save to favorites":
             self.ui.display_message("Added to favorites (Mock).", "secondary")
             input("\nPress Enter to return...")
-            return
+            return "done"
 
         final_dork = text
         if action == "Edit before running":
@@ -145,7 +152,7 @@ class DorkMasterPro:
             if edited:
                 final_dork = edited
             else:
-                return # Canceled
+                return "back" # Canceled
 
         # Execution mode prompt
         mode = questionary.select(
