@@ -12,9 +12,10 @@ class ScraperEngine:
     DATA_ENDPOINT = "https://www.exploit-db.com/ghdb"
     
     HEADERS = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
         "X-Requested-With": "XMLHttpRequest",
-        "Accept": "application/json, text/javascript, */*; q=0.01"
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Referer": "https://www.exploit-db.com/google-hacking-database"
     }
 
     def __init__(self, db_manager):
@@ -37,7 +38,7 @@ class ScraperEngine:
             "order[0][dir]": "desc",
             "start": 0,
             "length": 120, # Fetch in chunks
-            "search[value]v": "",
+            "search[value]": "",
             "search[regex]": "false"
         }
 
@@ -47,7 +48,11 @@ class ScraperEngine:
         try:
             # First request to get total count
             response = requests.get(self.DATA_ENDPOINT, params=params, headers=self.HEADERS, timeout=15)
-            response.raise_for_status()
+            
+            if response.status_code != 200:
+                print(f"[!] GHDB returned status {response.status_code}. Possible block.")
+                return 0
+                
             data = response.json()
             records_total = data.get("recordsTotal", 0)
             total_found = records_total
@@ -114,7 +119,9 @@ class ScraperEngine:
             "start": 0,
             "length": 50,
             "order[0][column]": 0,
-            "order[0][dir]": "desc"
+            "order[0][dir]": "desc",
+            "search[value]": "",
+            "search[regex]": "false"
         }
         
         new_dorks_count = 0

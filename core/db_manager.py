@@ -3,8 +3,13 @@ import os
 from datetime import datetime
 
 class DatabaseManager:
-    def __init__(self, db_path="data/dorks.db"):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        if db_path is None:
+            # Get the path relative to the root of the project
+            root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.db_path = os.path.join(root_dir, "data", "dorks.db")
+        else:
+            self.db_path = db_path
         self._initialize_db()
 
     def _get_connection(self):
@@ -12,7 +17,9 @@ class DatabaseManager:
 
     def _initialize_db(self):
         """Initializes the database schema if it doesn't exist."""
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        db_dir = os.path.dirname(self.db_path)
+        if not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
         
         with self._get_connection() as conn:
             cursor = conn.cursor()
