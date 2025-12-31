@@ -116,29 +116,49 @@ class DorkMasterPro:
         text = dork_tuple[2]
         
         # Determine category and URL based on tuple length or content
-        category = dork_tuple[3] if len(dork_tuple) == 4 else "Unknown"
+        category = dork_tuple[3] if len(dork_tuple) == 4 else (dork_tuple[3] if len(dork_tuple) > 3 else "Unknown")
         date = dork_tuple[3] if len(dork_tuple) > 4 else "N/A"
         url = dork_tuple[4] if len(dork_tuple) > 4 else f"https://www.exploit-db.com/ghdb/{d_id}"
         
         action = self.ui.show_dork_details(d_id, title, text, category, date, url)
         
-        if action == "Run as is":
-            self.current_results = self.searcher.execute(text)
-            input("\nSearch finished. Press Enter to view results...")
-            print(self.searcher.format_results_table(self.current_results))
-            input("\nPress Enter to return...")
-        
-        elif action == "Edit before running":
-            new_text = self.ui.edit_dork_prompt(text)
-            if new_text:
-                self.current_results = self.searcher.execute(new_text)
-                input("\nSearch finished. Press Enter to view results...")
-                print(self.searcher.format_results_table(self.current_results))
-                input("\nPress Enter to return...")
-        
+        if action == "Back to results":
+            return
+            
         elif action == "Save to favorites":
             self.ui.display_message("Added to favorites (Mock).", "secondary")
             input("\nPress Enter to return...")
+            return
+
+        final_dork = text
+        if action == "Edit before running":
+            edited = self.ui.edit_dork_prompt(text)
+            if edited:
+                final_dork = edited
+            else:
+                return # Canceled
+
+        # Execution mode prompt
+        mode = questionary.select(
+            "Execution Mode:",
+            choices=[
+                questionary.Choice("[1] Terminal Search (Scrape results)", value="terminal"),
+                questionary.Choice("[2] Browser Search (Open live Google)", value="browser"),
+                questionary.Choice("[3] Cancel", value="cancel")
+            ],
+            use_shortcuts=True
+        ).ask()
+
+        if mode == "terminal":
+            self.current_results = self.searcher.execute(final_dork)
+            input("\nSearch finished. Press Enter to view results...")
+            print(self.searcher.format_results_table(self.current_results))
+            input("\nPress Enter to return...")
+        elif mode == "browser":
+            self.searcher.run_in_browser(final_dork)
+            input("\nBrowser opened. Press Enter to return...")
+        else:
+            return
 
 if __name__ == "__main__":
     app = DorkMasterPro()
