@@ -8,6 +8,7 @@ ENV/
 
 # DorkMaster Data & Logs
 logs/*.log
+data/*.json
 data/*.db
 data/export_dorks.json
 

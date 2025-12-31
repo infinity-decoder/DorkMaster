@@ -9,54 +9,54 @@ class ScraperEngine:
     Targeting the JSON endpoint for reliability.
     """
     GHDB_URL = "https://www.exploit-db.com/google-hacking-database"
-    DATA_ENDPOINT = "https://www.exploit-db.com/ghdb"
+    # The /ghdb endpoint is broken (404), we must use the main page URL with AJAX headers
+    DATA_ENDPOINT = "https://www.exploit-db.com/google-hacking-database"
     
     HEADERS = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "X-Requested-With": "XMLHttpRequest",
         "Accept": "application/json, text/javascript, */*; q=0.01",
         "Referer": "https://www.exploit-db.com/google-hacking-database"
     }
 
-    def __init__(self, db_manager):
-        self.db_manager = db_manager
+    def __init__(self, data_manager):
+        self.data_manager = data_manager
 
     def fetch_all_dorks(self):
         """
-        Fetches all dorks using the paginated endpoint. 
-        Exploit-DB uses DataTables which often has a 'draw' mechanism.
-        We'll try to get the full list if possible or loop through.
+        Fetches all dorks using the AJAX endpoint identified via browser analysis.
         """
         params = {
             "draw": 1,
             "columns[0][data]": "date",
-            "columns[1][data]": "url",
-            "columns[2][data]": "title",
-            "columns[3][data]": "category_id",
-            "columns[4][data]": "author_id",
+            "columns[1][data]": "url_title",
+            "columns[2][data]": "cat_id",
+            "columns[3][data]": "author_id",
             "order[0][column]": 0,
             "order[0][dir]": "desc",
             "start": 0,
-            "length": 120, # Fetch in chunks
+            "length": 120, 
             "search[value]": "",
             "search[regex]": "false"
         }
 
         new_dorks_count = 0
-        total_found = 0
         
         try:
             # First request to get total count
             response = requests.get(self.DATA_ENDPOINT, params=params, headers=self.HEADERS, timeout=15)
             
             if response.status_code != 200:
-                print(f"[!] GHDB returned status {response.status_code}. Possible block.")
+                print(f"[!] GHDB returned status {response.status_code}. Using fallback or exiting.")
                 return 0
                 
             data = response.json()
             records_total = data.get("recordsTotal", 0)
-            total_found = records_total
             
+            if records_total == 0:
+                print("[!] No records found. Check if X-Requested-With is blocked.")
+                return 0
+
             print(f"[*] Found {records_total} dorks in GHDB. Starting download...")
             
             pbar = tqdm(total=records_total, desc="[+] Syncing GHDB", unit="dork")
@@ -65,29 +65,32 @@ class ScraperEngine:
             while start < records_total:
                 params["start"] = start
                 resp = requests.get(self.DATA_ENDPOINT, params=params, headers=self.HEADERS, timeout=15)
-                resp_data = resp.json()
                 
+                if resp.status_code != 200:
+                    break
+                    
+                resp_data = resp.json()
                 dorks_list = resp_data.get("data", [])
+                
                 if not dorks_list:
                     break
                 
                 for item in dorks_list:
-                    # Item structure: {'date': '2023-12-01', 'url': '<a href="...">DORK</a>', 'title': 'Title', 'category': {'id': 1, 'category': 'Name'}, ...}
-                    # We need to extract the dork text from the 'url' field which is often HTML like <a href="...">the_dork_here</a>
-                    dork_html = item.get("url", "")
-                    # Simple extraction since it's predictable
-                    if "</a>" in dork_html:
-                        dork_text = dork_html.split(">")[1].split("<")[0]
-                    else:
-                        dork_text = dork_html
-                        
-                    title = item.get("title", "No Title")
-                    category_info = item.get("category", {})
-                    category_name = category_info.get("category", "Unknown")
-                    date_published = item.get("date", "")
-                    # GHDB results usually have internal IDs, but we use dork_text as unique constraint
+                    # Item structure: {'date': '...', 'url_title': '<a href="...">DORK</a>', 'category': {'cat_title': '...'}}
+                    url_title_html = item.get("url_title", "")
                     
-                    added = self.db_manager.add_dork(
+                    # Extract dork text from <a> tag
+                    if "</a>" in url_title_html:
+                        dork_text = url_title_html.split(">")[1].split("<")[0]
+                    else:
+                        dork_text = url_title_html
+                        
+                    title = dork_text # GHDB JSON returns dork text in url_title usually
+                    category_info = item.get("category", {})
+                    category_name = category_info.get("cat_title", "Unknown")
+                    date_published = item.get("date", "")
+                    
+                    added = self.data_manager.add_dork(
                         title=title,
                         dork_text=dork_text,
                         category_name=category_name,
@@ -98,12 +101,13 @@ class ScraperEngine:
                     if added:
                         new_dorks_count += 1
                 
+                self.data_manager.save_data() # Save in chunks
                 start += len(dorks_list)
                 pbar.update(len(dorks_list))
-                time.sleep(0.5) # Be respectful
+                time.sleep(0.5) 
                 
             pbar.close()
-            self.db_manager.log_update(new_dorks_count)
+            self.data_manager.log_update(new_dorks_count)
             return new_dorks_count
             
         except Exception as e:
@@ -112,7 +116,7 @@ class ScraperEngine:
 
     def update_incremental(self):
         """
-        Similar to fetch_all, but we can stop when we hit existing dorks.
+        Incremental update for new dorks.
         """
         params = {
             "draw": 1,
@@ -127,20 +131,23 @@ class ScraperEngine:
         new_dorks_count = 0
         try:
             resp = requests.get(self.DATA_ENDPOINT, params=params, headers=self.HEADERS, timeout=15)
+            if resp.status_code != 200:
+                return 0
+                
             resp_data = resp.json()
             dorks_list = resp_data.get("data", [])
             
             for item in dorks_list:
-                dork_html = item.get("url", "")
-                if "</a>" in dork_html:
-                    dork_text = dork_html.split(">")[1].split("<")[0]
+                url_title_html = item.get("url_title", "")
+                if "</a>" in url_title_html:
+                    dork_text = url_title_html.split(">")[1].split("<")[0]
                 else:
-                    dork_text = dork_html
+                    dork_text = url_title_html
                 
-                added = self.db_manager.add_dork(
-                    title=item.get("title", "No Title"),
+                added = self.data_manager.add_dork(
+                    title=dork_text,
                     dork_text=dork_text,
-                    category_name=item.get("category", {}).get("category", "Unknown"),
+                    category_name=item.get("category", {}).get("cat_title", "Unknown"),
                     date_published=item.get("date", ""),
                     url=f"https://www.exploit-db.com/ghdb/{item.get('id')}"
                 )
@@ -148,11 +155,10 @@ class ScraperEngine:
                 if added:
                     new_dorks_count += 1
                 else:
-                    # If we find a dork that already exists, we can stop (assuming desc order is consistent)
                     break
             
             if new_dorks_count > 0:
-                self.db_manager.log_update(new_dorks_count)
+                self.data_manager.log_update(new_dorks_count)
             return new_dorks_count
             
         except Exception as e:

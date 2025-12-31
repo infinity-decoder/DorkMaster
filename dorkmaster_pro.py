@@ -1,6 +1,6 @@
 import sys
 import time
-from core.db_manager import DatabaseManager
+from core.data_manager import DataManager
 from core.scraper_engine import ScraperEngine
 from core.ui_controller import UIController
 from core.search_engine import SearchEngine
@@ -10,9 +10,9 @@ from colorama import Fore
 
 class DorkMasterPro:
     def __init__(self):
-        self.db = DatabaseManager()
+        self.data_mgr = DataManager()
         self.ui = UIController()
-        self.scraper = ScraperEngine(self.db)
+        self.scraper = ScraperEngine(self.data_mgr)
         self.searcher = SearchEngine(self.ui)
         self.current_results = []
 
@@ -33,8 +33,8 @@ class DorkMasterPro:
     def run(self):
         self.show_disclaimer()
         
-        # Initial check/scrape if DB is empty
-        total_dorks, _ = self.db.get_stats()
+        # Initial check/scrape if data is empty
+        total_dorks, _ = self.data_mgr.get_stats()
         if total_dorks == 0:
             self.ui.display_message("Local database is empty. Performing initial scrape...", "warning")
             if Utils.check_connectivity():
@@ -49,7 +49,7 @@ class DorkMasterPro:
             if choice == "1": # Search Dorks
                 keyword = questionary.text("Enter search keyword (Title/Dork):").ask()
                 if keyword:
-                    results = self.db.search_dorks(keyword)
+                    results = self.data_mgr.search_dorks(keyword)
                     selected = self.ui.paginate_results(results, title=f"Search Results for '{keyword}'")
                     if selected:
                         self.handle_dork_selection(selected)
@@ -61,14 +61,13 @@ class DorkMasterPro:
                 input("\nPress Enter to return...")
 
             elif choice == "3": # Browse by Category
-                categories = self.db.get_all_categories()
-                cat_choices = [f"{name} (ID: {cid})" for name, cid in categories]
+                categories = self.data_mgr.get_all_categories()
+                cat_choices = [f"{name}" for name, cid in categories]
                 cat_choices.append("Back to Main Menu")
                 
                 cat_sel = questionary.select("Select Category:", choices=cat_choices).ask()
                 if cat_sel != "Back to Main Menu":
-                    cat_id = int(cat_sel.split("ID: ")[1].split(")")[0])
-                    results = self.db.get_dorks_by_category(cat_id)
+                    results = self.data_mgr.get_dorks_by_category(cat_sel)
                     selected = self.ui.paginate_results(results, title=f"Dorks in {cat_sel}")
                     if selected:
                         self.handle_dork_selection(selected)
@@ -82,8 +81,8 @@ class DorkMasterPro:
                     input("\nPress Enter to return to menu...")
 
             elif choice == "5": # Recent Dorks (Placeholder/Last update info)
-                last_update = self.db.get_last_update()
-                total_dorks, total_cats = self.db.get_stats()
+                last_update = self.data_mgr.get_last_update()
+                total_dorks, total_cats = self.data_mgr.get_stats()
                 self.ui.display_banner()
                 print(f"{Fore.CYAN}--- Database Statistics ---")
                 print(f"Total Dorks: {total_dorks}")
