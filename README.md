@@ -1,62 +1,78 @@
-# DorkMaster Pro 🔍
+# DorkMaster Pro 🔍🕶️
 
-DorkMaster Pro is a professional-grade, terminal-based reconnaissance tool designed for Google Dork intelligence management and execution. It mimics the style and efficiency of Kali Linux tools, providing a rich CLI interface to scrape, search, and execute Google Dorks.
-
-## 🚀 Features
-
-- **Automated Scraping**: Fetches the latest Google Dorks from Exploit-DB (GHDB).
-- **Local Intelligence**: Maintains an offline SQLite database of dorks for lightning-fast searching.
-- **Search & Filter**: Search dorks by keywords, titles, or categories.
-- **Live Execution**: Run dorks directly from the terminal or edit them before execution.
-- **Incremental Updates**: Keep your database fresh with one-click incremental updates.
-- **Clean UI**: Interactive menus powered by `questionary` and `colorama`.
-
-## 👤 Author
-
-**infinitydecoder**
-- Developed with a focus on ethical hacking and reconnaissance efficiency.
-
-## 🛠️ Installation & Setup
-
-DorkMaster Pro features an automatic setup and update system. Every time you launch the tool, it checks for the latest version from GitHub.
-
-### 🪟 Windows
-Just double-click `run.bat` or run:
-```cmd
-run.bat
-```
-
-### 🐧 Linux / 🍎 macOS
-Run the following command:
-```bash
-chmod +x run.sh
-./run.sh
-```
-
-### ⚙️ Manual Setup (Optional)
-If you prefer to set things up manually:
-1. **Create Venv**: `python -m venv .venv`
-2. **Activate**:
-   - Windows: `.venv\Scripts\activate`
-   - Linux/macOS: `source .venv/bin/activate`
-3. **Install Deps**: `pip install -r requirements.txt`
-4. **Run**: `python dorkmaster_pro.py`
-
-> [!TIP]
-> **Linux Users**: If you encounter `PermissionError` when running `run.sh`, try running:
-> `sudo chown -R $USER:$USER .`
-
-### Main Menu Options:
-1. **Search Dorks**: Find specific dorks by keyword.
-2. **Update Database**: Scrape latest dorks from Exploit-DB.
-3. **Browse by Category**: Explore dorks organized by vulnerability type.
-4. **Quick Search**: Manually enter and run any dork.
-5. **Database Statistics**: View total dork count and last update time.
-6. **Exit**: Securely close the application.
-
-## ⚖️ Legal Disclaimer
-
-This tool is for **authorized security research and educational purposes only**. Unauthorized use against targets without prior consent is illegal. The author is not responsible for any misuse or damage caused by this tool.
+DorkMaster Pro is a high-performance, terminal-based reconnaissance intelligence tool designed for Google Dork management and stealth execution. Inspired by the aesthetics of modern cybersecurity toolkits like Kali Linux, it provides a feature-rich, "Cyberpunk" styled environment for security researchers to scrape, manage, and execute dorks with precision.
 
 ---
-*Happy Hunting!*
+
+## 🚀 Advanced Features
+
+### 📡 Intelligence Gathering
+- **Full Database Synchronization**: Reliable scraping of the entire Exploit-DB (GHDB) repository (7000+ dorks) via high-performance AJAX endpoints.
+- **Incremental Updates**: Keep your intelligence fresh with targeted updates for the newest dork additions.
+- **Serverless JSON Storage**: Optimized local storage using a portable JSON format with $O(1)$ duplicate checking for maximum speed.
+
+### 🕵️ Stealth Search Engine
+- **Anti-Bot Mitigation**: Built-in randomized delays (jitters) and User-Agent rotation to stay under Google's radar.
+- **Smart 429 Handling**: Proactive detection of rate limiting with specific tactical advice for IP rotation (VPN/Proxy).
+- **High-Res Results**: Scrapes live search results with a focus on speed and reliability.
+
+### 🌐 Dual Execution Modes
+- **Terminal Execution**: Scrape results directly into your CLI in a secure, controlled environment.
+- **Live Browser Mode**: Instantly launch your default web browser and bridge your dork query directly into Google Search.
+
+### 🎨 Premium User Experience
+- **Cyberpunk UI**: A vibrant, high-contrast visual theme with icon-enhanced menus and box-drawing banners.
+- **Tactical Navigation**: Complete support for both arrow-key selection and **Direct Numeric Input** (type `1-8` for instant action).
+- **Persistent Pagination**: The system remembers your page position even when jumping between dork details and list views.
+- **In-place Editing**: Modify dork queries on-the-fly with smart pre-filled prompts.
+
+---
+
+## 🛠️ Installation & Rapid Deployment
+
+DorkMaster Pro features an **Automated Setup and Sync** system. Every launch automatically verifies your environment and pulls the latest tactical updates.
+
+### 🪟 Windows Deployment
+1. Double-click `run.bat` or execute:
+   ```cmd
+   run.bat
+   ```
+
+### 🐧 Linux / 🍎 macOS Deployment
+1. Set execution permissions and launch:
+   ```bash
+   chmod +x run.sh
+   ./run.sh
+   ```
+
+### 📦 Manual Initialization (If needed)
+1. Initialize environment: `python -m venv .venv`
+2. Activate:
+   - Windows: `.venv\Scripts\activate`
+   - Linux/macOS: `source .venv/bin/activate`
+3. Install dependencies: `pip install -r requirements.txt`
+4. Launch Hub: `python dorkmaster_pro.py`
+
+---
+
+## 🎯 Tactical Menu Hub
+
+1. **Search Intelligence Database**: Query the 7000+ local dorks by keyword or title.
+2. **Incremental Update**: Fetch only the latest additions from GHDB.
+3. **Full Database Synchronization**: (Recommended first run) Sync the entire GHDB library.
+4. **Browse Intelligence by Category**: Explore organized vulnerabilities (Files containing juicy info, etc.).
+5. **Quick Execution (Raw Dork)**: Immediately run any dork query without local database lookup.
+6. **View System Statistics**: Check dork counts and last synchronization timestamps.
+7. **Export Intelligence**: Export results to JSON/CSV (Beta).
+8. **Terminate Session**: Securely close the DorkMaster Hub.
+
+---
+
+## ⚖️ Legal & Ethical Policy
+
+**DorkMaster Pro is intended for authorized security research and educational purposes only.** 
+
+Accessing information through Google Dorks can lead to sensitive data exposure. Unauthorized use against targets without prior consent is strictly prohibited and likely illegal in your jurisdiction. The author and contributors are not responsible for any misuse, damage, or legal consequences arising from the use of this tool.
+
+---
+**[ infinitydecoder ]** | *Reconnaissance. Refined.*
