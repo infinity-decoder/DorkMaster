@@ -16,28 +16,31 @@ DorkMaster Pro is a professional-grade, terminal-based reconnaissance tool desig
 **infinitydecoder**
 - Developed with a focus on ethical hacking and reconnaissance efficiency.
 
-## 🛠️ Installation
+## 🛠️ Installation & Setup
 
-Ensure you have Python 3.8+ installed on your system.
+DorkMaster Pro features an automatic setup script that handles environment creation and dependency installation.
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/infinitydecoder/DorkMaster.git
-   cd DorkMaster
-   ```
-
-2. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## 📖 Usage
-
-Run the main script to start the application:
-
-```bash
-python dorkmaster_pro.py
+### 🪟 Windows
+Just double-click `run.bat` or run:
+```cmd
+run.bat
 ```
+
+### 🐧 Linux / 🍎 macOS
+Run the following command:
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+### ⚙️ Manual Setup (Optional)
+If you prefer to set things up manually:
+1. **Create Venv**: `python -m venv .venv`
+2. **Activate**:
+   - Windows: `.venv\Scripts\activate`
+   - Linux/macOS: `source .venv/bin/activate`
+3. **Install Deps**: `pip install -r requirements.txt`
+4. **Run**: `python dorkmaster_pro.py`
 
 ### Main Menu Options:
 1. **Search Dorks**: Find specific dorks by keyword.
