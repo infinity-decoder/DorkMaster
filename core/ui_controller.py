@@ -12,6 +12,16 @@ class UIController:
     AUTHOR = "infinitydecoder"
     VERSION = "1.0"
 
+    GLOBAL_STYLE = questionary.Style([
+        ('qmark', 'fg:#00ffff bold'),       # Cyan
+        ('question', 'fg:#ffffff bold'),    # White
+        ('pointer', 'fg:#ff00ff bold'),     # Magenta pointer
+        ('highlighted', 'fg:#00ff00 bold'), # Green selection
+        ('selected', 'fg:#00ff00'),         # Green selected
+        ('text', 'fg:#ffffff'),
+        ('choice-shortcut', 'fg:#ffff00 bold'), # Yellow numbers
+    ])
+
     COLORS = {
         "primary": Style.BRIGHT + Fore.CYAN,      # Vibrant Cyan
         "secondary": Style.BRIGHT + Fore.GREEN,   # Neon Green
@@ -37,34 +47,30 @@ class UIController:
 
     def main_menu(self):
         self.display_banner()
-        print(f"{self.COLORS['primary']}--- MAIN NAVIGATION ---")
+        print(f"{self.COLORS['highlight']}╔══════════════════════════════════════════════════════════╗")
+        print(f"║ {self.COLORS['primary']}>>> SYSTEM MAIN NAVIGATION <<<".ljust(69) + f"{self.COLORS['highlight']}║")
+        print(f"╚══════════════════════════════════════════════════════════╝")
+        
         choices = [
-            "[1] Search Dorks",
-            "[2] Incremental Update (Newest Only)",
-            "[3] Full Database Synchronization",
-            "[4] Browse by Category",
-            "[5] Quick Search (Raw Dork)",
-            "[6] Database Statistics",
-            "[7] Export Dorks (JSON/CSV)",
-            "[8] Exit"
+            questionary.Choice("🔍 [1] Search Intelligence Database", value="1"),
+            questionary.Choice("📥 [2] Incremental Update (Newest Only)", value="2"),
+            questionary.Choice("🔄 [3] Full Database Synchronization", value="3"),
+            questionary.Choice("📂 [4] Browse Intelligence by Category", value="4"),
+            questionary.Choice("⚡ [5] Quick Execution (Raw Dork)", value="5"),
+            questionary.Choice("📊 [6] View System Statistics", value="6"),
+            questionary.Choice("📤 [7] Export Intelligence (JSON/CSV)", value="7"),
+            questionary.Choice("❌ [8] Terminate Session", value="8")
         ]
         
-        # We'll use a standard prompt that allows both arrow selection AND numeric input
         selection = questionary.select(
-            "Select action (or press 1-8):",
+            "Select operation mode:",
             choices=choices,
-            use_shortcuts=True, # This enables numeric shortcuts for the first 9 choices!
-            style=questionary.Style([
-                ('qmark', 'fg:#00ffff bold'),
-                ('question', 'fg:#ffffff bold'),
-                ('pointer', 'fg:#00ff00 bold'),
-                ('highlighted', 'fg:#00ff00 bold'),
-                ('selected', 'fg:#00ff00'),
-            ])
+            use_shortcuts=True,
+            style=self.GLOBAL_STYLE
         ).ask()
         
         if selection:
-            return selection.split("]")[0].strip("[")
+            return selection
         return None
 
     def display_message(self, message, msg_type="info"):
@@ -93,13 +99,21 @@ class UIController:
         print(f"{self.COLORS['highlight']}╚" + "═" * 60 + "╝")
         
         choices = [
-            "Run as is",
-            "Edit before running",
-            "Save to favorites",
-            "Back to results"
+            questionary.Choice("🚀 [1] Run Dork (Execution Hub)", value="run"),
+            questionary.Choice("📝 [2] Edit Query before execution", value="edit"),
+            questionary.Choice("⭐ [3] Save to Mission Favorites", value="fav"),
+            questionary.Choice("🔙 [4] Return to Intel List", value="back")
         ]
         
-        return questionary.select("Manage Dork:", choices=choices).ask()
+        res = questionary.select(
+            "Intelligence Action:",
+            choices=choices,
+            use_shortcuts=True,
+            style=self.GLOBAL_STYLE
+        ).ask()
+        
+        mapping = {"run": "Run as is", "edit": "Edit before running", "fav": "Save to favorites", "back": "Back to results"}
+        return mapping.get(res)
 
     def paginate_results(self, results, page_size=10, title="Search Results", start_page=0):
         total_results = len(results)
@@ -127,20 +141,28 @@ class UIController:
             
             nav_choices = []
             if end < total_results:
-                nav_choices.append("Next Page")
+                nav_choices.append(questionary.Choice("➡️  [1] Next Intel Page", value="next"))
             if current_page > 0:
-                nav_choices.append("Previous Page")
+                nav_choices.append(questionary.Choice("⬅️  [2] Previous Intel Page", value="prev"))
             
-            nav_choices.extend(["Select Dork by ID", "Back to Menu"])
+            nav_choices.extend([
+                questionary.Choice("🎯 [3] Select Intel by ID", value="select"),
+                questionary.Choice("🏠 [4] Return to Tactical Hub", value="home")
+            ])
             
-            selection = questionary.select("Navigation:", choices=nav_choices).ask()
+            selection = questionary.select(
+                "Navigation Command:",
+                choices=nav_choices,
+                use_shortcuts=True,
+                style=self.GLOBAL_STYLE
+            ).ask()
             
-            if selection == "Next Page":
+            if selection == "next":
                 current_page += 1
-            elif selection == "Previous Page":
+            elif selection == "prev":
                 current_page -= 1
-            elif selection == "Select Dork by ID":
-                dork_id_str = questionary.text("Enter ID number (# from table):").ask()
+            elif selection == "select":
+                dork_id_str = questionary.text("Enter ID of target intel (# from table):").ask()
                 try:
                     idx = int(dork_id_str) - 1
                     if 0 <= idx < total_results:
