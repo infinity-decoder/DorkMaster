@@ -81,14 +81,16 @@ class UIController:
 
     def show_dork_details(self, dork_id, title, dork_text, category, date, url):
         self.display_banner()
-        print(f"{self.COLORS['highlight']}┌" + "─" * 60 + "┐")
-        print(f"{self.COLORS['highlight']}│ {self.COLORS['info']}[ID: {dork_id}]".ljust(62) + f"{self.COLORS['highlight']}│")
-        print(f"{self.COLORS['highlight']}│ {self.COLORS['secondary']}Title: {title}".ljust(62) + f"{self.COLORS['highlight']}│")
-        print(f"{self.COLORS['highlight']}│ {self.COLORS['secondary']}Category: {category}".ljust(62) + f"{self.COLORS['highlight']}│")
-        print(f"{self.COLORS['highlight']}│ {self.COLORS['primary']}Dork: {dork_text}".ljust(62) + f"{self.COLORS['highlight']}│")
-        print(f"{self.COLORS['highlight']}│ {self.COLORS['info']}Published: {date}".ljust(62) + f"{self.COLORS['highlight']}│")
-        print(f"{self.COLORS['highlight']}│ {self.COLORS['info']}Source: {url}".ljust(62) + f"{self.COLORS['highlight']}│")
-        print(f"{self.COLORS['highlight']}└" + "─" * 60 + "┘")
+        print(f"{self.COLORS['highlight']}╔" + "═" * 60 + "╗")
+        print(f"{self.COLORS['highlight']}║ {self.COLORS['info']}DORK INTEL REPORT".ljust(69) + f"{self.COLORS['highlight']}║")
+        print(f"{self.COLORS['highlight']}╠" + "═" * 60 + "╣")
+        print(f"{self.COLORS['highlight']}║ {self.COLORS['accent']}ID      : {self.COLORS['info']}{dork_id}".ljust(69) + f"{self.COLORS['highlight']}║")
+        print(f"{self.COLORS['highlight']}║ {self.COLORS['secondary']}Title   : {self.COLORS['info']}{title[:50]}".ljust(69) + f"{self.COLORS['highlight']}║")
+        print(f"{self.COLORS['highlight']}║ {self.COLORS['secondary']}Category: {self.COLORS['info']}{category[:50]}".ljust(69) + f"{self.COLORS['highlight']}║")
+        print(f"{self.COLORS['highlight']}║ {self.COLORS['primary']}Dork    : {self.COLORS['highlight']}{dork_text[:50]}".ljust(69) + f"{self.COLORS['highlight']}║")
+        print(f"{self.COLORS['highlight']}║ {self.COLORS['accent']}Date    : {self.COLORS['info']}{date}".ljust(69) + f"{self.COLORS['highlight']}║")
+        print(f"{self.COLORS['highlight']}║ {self.COLORS['accent']}Source  : {self.COLORS['info']}{url[:50]}".ljust(69) + f"{self.COLORS['highlight']}║")
+        print(f"{self.COLORS['highlight']}╚" + "═" * 60 + "╝")
         
         choices = [
             "Run as is",
@@ -99,14 +101,14 @@ class UIController:
         
         return questionary.select("Manage Dork:", choices=choices).ask()
 
-    def paginate_results(self, results, page_size=10, title="Search Results"):
+    def paginate_results(self, results, page_size=10, title="Search Results", start_page=0):
         total_results = len(results)
         if total_results == 0:
             self.display_message("No results found.", "warning")
             input("\nPress Enter to return...")
-            return None
+            return None, 0
 
-        current_page = 0
+        current_page = start_page
         while True:
             self.clear_screen()
             self.display_banner()
@@ -142,13 +144,13 @@ class UIController:
                 try:
                     idx = int(dork_id_str) - 1
                     if 0 <= idx < total_results:
-                        return results[idx]
+                        return results[idx], current_page
                     else:
                         self.display_message("Invalid ID.", "error")
                 except ValueError:
                     self.display_message("Please enter a number.", "error")
             else:
-                return None
+                return None, current_page
 
     def edit_dork_prompt(self, original_text):
         self.display_message("Editing Dork (use backspace/arrows and press Enter to save)", "warning")

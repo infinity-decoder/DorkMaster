@@ -50,9 +50,13 @@ class DorkMasterPro:
                 keyword = questionary.text("Enter search keyword (Title/Dork):").ask()
                 if keyword:
                     results = self.data_mgr.search_dorks(keyword)
-                    selected = self.ui.paginate_results(results, title=f"Search Results for '{keyword}'")
-                    if selected:
-                        self.handle_dork_selection(selected)
+                    page = 0
+                    while True:
+                        selected, page = self.ui.paginate_results(results, title=f"Search Results for '{keyword}'", start_page=page)
+                        if selected:
+                            self.handle_dork_selection(selected)
+                        else:
+                            break
             
             elif choice == "2": # Incremental Update
                 total_dorks, _ = self.data_mgr.get_stats()
@@ -79,9 +83,14 @@ class DorkMasterPro:
                 cat_sel = questionary.select("Select Category:", choices=cat_choices).ask()
                 if cat_sel != "Back to Main Menu":
                     results = self.data_mgr.get_dorks_by_category(cat_sel)
-                    selected = self.ui.paginate_results(results, title=f"Dorks in {cat_sel}")
-                    if selected:
-                        self.handle_dork_selection(selected)
+                    page = 0
+                    while True:
+                        selected, page = self.ui.paginate_results(results, title=f"Dorks in {cat_sel}", start_page=page)
+                        if selected:
+                            self.handle_dork_selection(selected)
+                        else:
+                            break
+                    
 
             elif choice == "5": # Quick Search (Run immediate)
                 dork_text = questionary.text("Enter dork to run:").ask()
