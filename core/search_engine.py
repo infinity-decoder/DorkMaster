@@ -37,10 +37,9 @@ class SearchEngine:
             
             search_gen = search(
                 dork_text, 
-                num=num_results, 
-                stop=num_results, 
-                pause=sleep_interval,
-                user_agent=random.choice(self.USER_AGENTS)
+                num_results=num_results, 
+                lang=lang,
+                sleep_interval=sleep_interval
             )
             
             print(f"\n{Fore.GREEN}[+] FETCHING RESULTS...")

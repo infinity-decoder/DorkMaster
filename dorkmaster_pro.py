@@ -55,6 +55,8 @@ class DorkMasterPro:
                         self.handle_dork_selection(selected)
             
             elif choice == "2": # Update Database
+                total_dorks, _ = self.data_mgr.get_stats()
+                self.ui.display_message(f"Local system has {total_dorks} dorks.", "info")
                 self.ui.display_message("Checking for updates...", "info")
                 new_count = self.scraper.update_incremental()
                 self.ui.display_message(f"Update complete. {new_count} new dorks added.", "secondary")
@@ -104,14 +106,17 @@ class DorkMasterPro:
                 sys.exit(0)
 
     def handle_dork_selection(self, dork_tuple):
-        # dork_tuple: (id, title, text, category_name/id, date, url)
-        # Handle variations in tuple length depending on source query
+        # Handle variations: search=(id, title, text, cat), browse=(id, title, text, date, url)
         d_id = dork_tuple[0]
         title = dork_tuple[1]
         text = dork_tuple[2]
         
-        # Get full details from DB to be sure
-        action = self.ui.show_dork_details(d_id, title, text, "Category", "N/A", "N/A")
+        # Determine category and URL based on tuple length or content
+        category = dork_tuple[3] if len(dork_tuple) == 4 else "Unknown"
+        date = dork_tuple[3] if len(dork_tuple) > 4 else "N/A"
+        url = dork_tuple[4] if len(dork_tuple) > 4 else f"https://www.exploit-db.com/ghdb/{d_id}"
+        
+        action = self.ui.show_dork_details(d_id, title, text, category, date, url)
         
         if action == "Run as is":
             self.current_results = self.searcher.execute(text)
