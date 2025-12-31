@@ -21,27 +21,32 @@ class SearchEngine:
     def __init__(self, ui_controller):
         self.ui = ui_controller
 
-    def execute(self, dork_text, num_results=10, lang="en", region=None, sleep_interval=2):
+    def execute(self, dork_text, num_results=10, lang="en", region=None, sleep_interval=None):
         """
-        Executes the dork query.
+        Executes the dork query with anti-detection measures.
         """
-        self.ui.display_message("Initializing high-res search...", "info")
+        self.ui.display_message("Initializing stealth search...", "info")
         self.ui.display_message(f"Dork Query: {dork_text}", "highlight")
-        self.ui.display_message("Ethical Warning: Unauthorized testing is strictly prohibited.", "warning")
         
+        # Determine a randomized sleep interval if none is provided
+        if sleep_interval is None:
+            # Random delay between 5 to 12 seconds is safer for Google
+            current_delay = random.uniform(5, 12)
+        else:
+            current_delay = sleep_interval + random.uniform(1, 3)
+
         results = []
         try:
-            # googlesearch-python 1.2.3: search(term, num_results=10, lang="en", timeout=10, ...)
-            # We'll set a high timeout (30 seconds) to avoid connection drops.
+            # We use a high timeout and randomized pause to avoid 429s
             search_gen = search(
                 dork_text, 
                 num_results=num_results, 
                 lang=lang,
-                sleep_interval=sleep_interval,
-                timeout=30 # Increased from default 5-10s
+                sleep_interval=current_delay,
+                timeout=30
             )
             
-            print(f"\n{Fore.GREEN}[+] FETCHING INTEL FROM GOOGLE...")
+            print(f"\n{Fore.GREEN}[+] EXTRACTING INTEL (Delay: {current_delay:.1f}s)...")
             count = 0
             for url in search_gen:
                 count += 1
@@ -51,17 +56,21 @@ class SearchEngine:
                     break
             
             if not results:
-                print(f"\n{Fore.YELLOW}[!] Zero results returned. This could be due to a strict dork or WAF blocking.")
+                print(f"\n{Fore.YELLOW}[!] Zero results. Google might have served a captcha or the dork is too specific.")
             
             return results
 
         except Exception as e:
-            # Catch common network errors and provide better context
             error_msg = str(e)
-            if "Max retries exceeded" in error_msg or "timed out" in error_msg:
-                self.ui.display_message("Connection Timeout: Google is either blocking us or the network is too slow.", "error")
+            if "429" in error_msg:
+                print(f"\n{Fore.RED}[!] ERROR: RATE LIMITED (429)")
+                print(f"{Fore.YELLOW}[*] Google has detected automated activity.")
+                print(f"{Fore.CYAN}[TIP] Try switching your VPN location or wait 15-30 minutes.")
+                self.ui.display_message("Rate limited by Google. Please change your IP or wait.", "error")
+            elif "Max retries" in error_msg or "timed out" in error_msg:
+                self.ui.display_message("Connection Timeout: Network is too slow or Google is dropping requests.", "error")
             else:
-                self.ui.display_message(f"Search Execution Failed: {e}", "error")
+                 self.ui.display_message(f"Search failed: {e}", "error")
             return []
 
     def format_results_table(self, results):
