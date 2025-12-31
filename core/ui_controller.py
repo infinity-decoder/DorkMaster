@@ -35,6 +35,7 @@ class UIController:
         print(f"{self.COLORS['secondary']}" + "-" * 50 + "\n")
 
     def main_menu(self):
+        self.display_banner()
         choices = [
             questionary.Choice("[1] Search Dorks", value="1"),
             questionary.Choice("[2] Incremental Update (Newest Only)", value="2"),
@@ -54,8 +55,6 @@ class UIController:
                 ('selected', 'fg:#673ab7 bold')
             ])
         ).ask()
-            return selection.split("]")[0].strip("[")
-        return None
 
     def display_message(self, message, msg_type="info"):
         color = self.COLORS.get(msg_type, Fore.WHITE)
