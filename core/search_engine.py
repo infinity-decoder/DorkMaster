@@ -25,40 +25,43 @@ class SearchEngine:
         """
         Executes the dork query.
         """
-        self.ui.display_message("Initializing search...", "info")
-        self.ui.display_message(f"Dork: {dork_text}", "highlight")
-        self.ui.display_message("Warning: Unauthorized testing is illegal. Use responsibly.", "warning")
+        self.ui.display_message("Initializing high-res search...", "info")
+        self.ui.display_message(f"Dork Query: {dork_text}", "highlight")
+        self.ui.display_message("Ethical Warning: Unauthorized testing is strictly prohibited.", "warning")
         
         results = []
         try:
-            # googlesearch-python usage: search(query, num_results, lang, sleep_interval)
-            # Some versions use 'advanced=True' to get snippets/titles
-            # We'll use a basic search and try to present it cleanly.
-            
+            # googlesearch-python 1.2.3: search(term, num_results=10, lang="en", timeout=10, ...)
+            # We'll set a high timeout (30 seconds) to avoid connection drops.
             search_gen = search(
                 dork_text, 
                 num_results=num_results, 
                 lang=lang,
-                sleep_interval=sleep_interval
+                sleep_interval=sleep_interval,
+                timeout=30 # Increased from default 5-10s
             )
             
-            print(f"\n{Fore.GREEN}[+] FETCHING RESULTS...")
+            print(f"\n{Fore.GREEN}[+] FETCHING INTEL FROM GOOGLE...")
             count = 0
             for url in search_gen:
                 count += 1
                 results.append(url)
                 print(f"{Fore.CYAN}[{count}] {url}")
-                # We can't easily get titles/snippets with the basic search generator
-                # without extra requests, but we'll stick to URLs for now as per plan
-                # to avoid excessive blocking.
+                if count >= num_results:
+                    break
             
             if not results:
-                self.ui.display_message("No results found or Google blocked the request.", "warning")
+                print(f"\n{Fore.YELLOW}[!] Zero results returned. This could be due to a strict dork or WAF blocking.")
             
             return results
 
         except Exception as e:
-            self.ui.display_message(f"Search Error: {e}", "error")
+            # Catch common network errors and provide better context
+            error_msg = str(e)
+            if "Max retries exceeded" in error_msg or "timed out" in error_msg:
+                self.ui.display_message("Connection Timeout: Google is either blocking us or the network is too slow.", "error")
+            else:
+                self.ui.display_message(f"Search Execution Failed: {e}", "error")
             return []
 
     def format_results_table(self, results):

@@ -13,12 +13,13 @@ class UIController:
     VERSION = "1.0"
 
     COLORS = {
-        "primary": Fore.CYAN,
-        "secondary": Fore.GREEN,
-        "warning": Fore.YELLOW,
-        "error": Fore.RED,
-        "info": Fore.WHITE,
-        "highlight": Fore.MAGENTA
+        "primary": Style.BRIGHT + Fore.CYAN,      # Vibrant Cyan
+        "secondary": Style.BRIGHT + Fore.GREEN,   # Neon Green
+        "warning": Style.BRIGHT + Fore.YELLOW,    # Warning Yellow
+        "error": Style.BRIGHT + Fore.RED,         # Critical Red
+        "info": Fore.WHITE,                       # Basic White
+        "highlight": Style.BRIGHT + Fore.MAGENTA, # Deep Purple/Magenta
+        "accent": Style.BRIGHT + Fore.BLUE        # Accent Blue
     }
 
     def __init__(self):
@@ -31,30 +32,40 @@ class UIController:
         self.clear_screen()
         banner_text = pyfiglet.figlet_format("DorkMaster Pro", font=self.BANNER_FONT)
         print(f"{self.COLORS['secondary']}{banner_text}")
-        print(f"{self.COLORS['primary']}Author: {self.AUTHOR} | Version: {self.VERSION}")
-        print(f"{self.COLORS['secondary']}" + "-" * 50 + "\n")
+        print(f"{self.COLORS['highlight']}║ {self.COLORS['primary']}Author: {self.AUTHOR} | Version: {self.VERSION}".ljust(61) + f"{self.COLORS['highlight']}║")
+        print(f"{self.COLORS['highlight']}╚" + "═" * 58 + "╝\n")
 
     def main_menu(self):
         self.display_banner()
+        print(f"{self.COLORS['primary']}--- MAIN NAVIGATION ---")
         choices = [
-            questionary.Choice("[1] Search Dorks", value="1"),
-            questionary.Choice("[2] Incremental Update (Newest Only)", value="2"),
-            questionary.Choice("[3] Full Database Synchronization", value="3"),
-            questionary.Choice("[4] Browse by Category", value="4"),
-            questionary.Choice("[5] Quick Search (Raw Dork)", value="5"),
-            questionary.Choice("[6] Database Statistics", value="6"),
-            questionary.Choice("[7] Export Dorks (JSON/CSV)", value="7"),
-            questionary.Choice("[8] Exit", value="8")
+            "[1] Search Dorks",
+            "[2] Incremental Update (Newest Only)",
+            "[3] Full Database Synchronization",
+            "[4] Browse by Category",
+            "[5] Quick Search (Raw Dork)",
+            "[6] Database Statistics",
+            "[7] Export Dorks (JSON/CSV)",
+            "[8] Exit"
         ]
-        return questionary.select(
-            "Main Menu:",
+        
+        # We'll use a standard prompt that allows both arrow selection AND numeric input
+        selection = questionary.select(
+            "Select action (or press 1-8):",
             choices=choices,
+            use_shortcuts=True, # This enables numeric shortcuts for the first 9 choices!
             style=questionary.Style([
-                ('qmark', 'fg:#673ab7 bold'),
-                ('question', 'fg:#000000 bold'),
-                ('selected', 'fg:#673ab7 bold')
+                ('qmark', 'fg:#00ffff bold'),
+                ('question', 'fg:#ffffff bold'),
+                ('pointer', 'fg:#00ff00 bold'),
+                ('highlighted', 'fg:#00ff00 bold'),
+                ('selected', 'fg:#00ff00'),
             ])
         ).ask()
+        
+        if selection:
+            return selection.split("]")[0].strip("[")
+        return None
 
     def display_message(self, message, msg_type="info"):
         color = self.COLORS.get(msg_type, Fore.WHITE)
@@ -140,6 +151,9 @@ class UIController:
                 return None
 
     def edit_dork_prompt(self, original_text):
-        print(f"\n{self.COLORS['warning']}[!] ENTER NEW DORK TEXT (Leave empty to cancel):")
-        new_text = input(f"{self.COLORS['info']}> ")
-        return new_text if new_text.strip() else None
+        self.display_message("Editing Dork (use backspace/arrows and press Enter to save)", "warning")
+        new_text = questionary.text(
+            "Modify Dork:",
+            default=original_text
+        ).ask()
+        return new_text if new_text and new_text.strip() else None
