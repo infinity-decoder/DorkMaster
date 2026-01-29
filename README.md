@@ -1,6 +1,9 @@
 # DorkMaster Pro 🔍🕶️
 
 DorkMaster Pro is a high-performance, terminal-based reconnaissance intelligence tool designed for Google Dork management and stealth execution. Inspired by the aesthetics of modern cybersecurity toolkits like Kali Linux, it provides a feature-rich, "Cyberpunk" styled environment for security researchers to scrape, manage, and execute dorks with precision.
+<img width="943" height="494" alt="Screenshot 2026-01-29 181552" src="https://github.com/user-attachments/assets/8ca48834-405e-43b0-8bea-e277e426053e" />
+
+
 <img width="1156" height="623" alt="image" src="https://github.com/user-attachments/assets/f47aab1c-083d-4f34-9610-6dc7157159f4" />
 
 ---
