@@ -97,69 +97,11 @@ jobs:
           cat << 'EOF' > release_notes.md
 # 🦅 DorkMaster v${{ env.VER }} — Production Release
 
-**DorkMaster** is an automated Google Dorking and OSINT reconnaissance suite engineered for security auditors, penetration testers, and cyber intelligence researchers.
 
----
 
-### 🚀 Key Highlights & Capabilities
-- **Google Dork Automation**: Query automation against Exploit-DB GHDB signatures and custom dork dictionaries.
-- **Stealth & Evasion**: Dynamic User-Agent header cycling and intelligent request throttling to avoid HTTP 429 rate limiting.
-- **High-Performance Local Database**: Fast local JSON cache enabling offline and instant keyword/category filtering.
-- **Cyberpunk Terminal Interface (TUI & CLI)**:
-  - Interactive colored terminal menu with ASCII artwork banner.
-  - Headless batch mode for automated security scanning pipelines.
-- **Multi-Format Export**: One-click results export to \`JSON\`, \`CSV\`, and formatted \`TXT\`.
-- **Debian & Kali Linux Native**: Full desktop application integration (\`dorkmaster.desktop\`) with high-resolution system icons.
-
----
-
-### 📦 Installation Guide
-
-#### 1. Debian / Kali Linux / Ubuntu (\`.deb\`)
-Download the pre-compiled Debian package and install via \`dpkg\`:
-\`\`\`bash
-# Install Debian binary
-sudo dpkg -i ${{ env.RELEASE_NAME }}_all.deb
-
-# Resolve any missing system dependencies
-sudo apt-get update && sudo apt-get install -f -y
-
-# Verify installation
-dorkmaster --version
-\`\`\`
-
-#### 2. Python Wheel / Pip (\`.whl\`)
-Install directly into your Python environment:
-\`\`\`bash
-pip install dorkmaster-${{ env.VER }}-py3-none-any.whl
-dorkmaster --help
-\`\`\`
-
----
-
-### 🛡️ Release Artifacts & SHA-256 Checksums
-
-Verify the authenticity of downloaded binaries against the cryptographic hashes below:
-
-| File Name | SHA-256 Checksum |
-|:---|:---|
-EOF
-
-          # Dynamically populate checksum table
-          while IFS= read -r line; do
-            hash=$(echo "$line" | awk '{print $1}')
-            fname=$(echo "$line" | awk '{print $2}')
-            if [ "$fname" != "SHA256SUMS.txt" ]; then
-              echo "| \`$fname\` | \`$hash\` |" >> release_notes.md
-            fi
-          done < release_assets/SHA256SUMS.txt
-
-          cat << 'EOF' >> release_notes.md
-
----
 
 *Build generated automatically by GitHub Actions workflow for **${{ env.RELEASE_NAME }}**.*  
-*Maintained by **Owlopia & infinitydecoder** under the MIT License.*
+*Maintained by **Owlopia ** under the MIT License.*
 EOF
           echo "Generated release notes:"
           cat release_notes.md
