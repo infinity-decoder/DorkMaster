@@ -94,7 +94,7 @@ jobs:
           sha256sum * > SHA256SUMS.txt
           cd ..
 
-          cat << 'EOF' > release_notes.md
+            cat > release_notes.md << 'EOF'
 # 🦅 DorkMaster v${{ env.VER }} — Production Release
 
 
