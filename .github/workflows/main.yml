@@ -2,8 +2,12 @@ name: Build and Release Linux Package
 
 on:
   push:
+    branches:
+      - main
+      - master
     tags:
       - 'v*'
+      - '[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
 
 jobs:
@@ -25,10 +29,15 @@ jobs:
       - name: Parse Version & Release Metadata
         id: vars
         run: |
-          RAW_TAG="${{ github.ref_name }}"
-          # Strip leading 'v' if present to normalize version number
-          VER="${RAW_TAG#v}"
-          if [ -z "$VER" ] || [ "$VER" = "main" ]; then
+          # Detect whether trigger was a git tag or a branch push
+          if echo "${{ github.ref }}" | grep -q "^refs/tags/"; then
+            RAW_TAG="${{ github.ref_name }}"
+            VER="${RAW_TAG#v}"
+          else
+            # On direct branch push (e.g. main), extract version dynamically from dorkmaster
+            VER=$(python3 -c "import dorkmaster; print(dorkmaster.__version__)" 2>/dev/null || echo "0.0.1")
+          fi
+          if [ -z "$VER" ]; then
             VER="0.0.1"
           fi
           TAG_NAME="v${VER}"
@@ -36,7 +45,7 @@ jobs:
           echo "VER=${VER}" >> $GITHUB_ENV
           echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
           echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
-          echo "Release target: ${RELEASE_NAME} (tag: ${TAG_NAME})"
+          echo "Target Release: ${RELEASE_NAME} (Tag: ${TAG_NAME})"
 
       - name: Install Debian Packaging System Dependencies
         run: |
