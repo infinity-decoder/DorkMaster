@@ -13,7 +13,7 @@ on:
 jobs:
   build-and-release:
     name: Build Debian Package & Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
 
@@ -29,12 +29,12 @@ jobs:
       - name: Parse Version & Release Metadata
         id: vars
         run: |
-          # Detect whether trigger was a git tag or a branch push
+          # Detect whether trigger was a git tag or a direct branch push
           if echo "${{ github.ref }}" | grep -q "^refs/tags/"; then
             RAW_TAG="${{ github.ref_name }}"
             VER="${RAW_TAG#v}"
           else
-            # On direct branch push (e.g. main), extract version dynamically from dorkmaster
+            # On direct branch push (e.g. main), extract version dynamically from dorkmaster package
             VER=$(python3 -c "import dorkmaster; print(dorkmaster.__version__)" 2>/dev/null || echo "0.0.1")
           fi
           if [ -z "$VER" ]; then
@@ -57,42 +57,121 @@ jobs:
             build-essential \
             fakeroot \
             python3-all \
+            python3-all-dev \
             python3-setuptools \
+            python3-wheel \
+            python3-pip \
             python3-stdeb
 
-      - name: Install Python Build Dependencies & stdeb
+      - name: Install Python Build Dependencies & Tools
         run: |
           python3 -m pip install --upgrade pip
-          # Explicitly install stdeb and setuptools in toolcache python environment
           python3 -m pip install "setuptools<72.0.0" wheel stdeb
-          python3 setup.py check
 
       - name: Build Debian Package (.deb)
         run: |
-          export SETUPTOOLS_USE_DISTUTILS=stdlib
+          # Build source package and binary .deb using stdeb
           python3 setup.py --command-packages=stdeb.command bdist_deb
           mkdir -p release_assets
-          # Copy deb files to release assets directory
+          # Copy generated Debian packages to release assets
           cp deb_dist/*.deb release_assets/
-          # Create standardized DorkMaster_vX.X.X_all.deb binary
+          # Copy branded DorkMaster_vX.X.X_all.deb binary
           for f in deb_dist/*.deb; do
             cp "$f" "release_assets/${{ env.RELEASE_NAME }}_all.deb"
           done
           echo "Generated Debian package assets:"
           ls -la release_assets/
 
-      - name: Build Python Wheel & Tarball
+      - name: Build Python Wheel & Source Distribution
         run: |
           python3 setup.py sdist bdist_wheel
           cp dist/* release_assets/
 
-      - name: Create GitHub Release
+      - name: Generate Professional Release Notes & Checksums
+        run: |
+          cd release_assets
+          # Compute cryptographic SHA-256 hashes for all artifacts
+          sha256sum * > SHA256SUMS.txt
+          cd ..
+
+          cat << 'EOF' > release_notes.md
+# 🦅 DorkMaster v${{ env.VER }} — Production Release
+
+**DorkMaster** is an automated Google Dorking and OSINT reconnaissance suite engineered for security auditors, penetration testers, and cyber intelligence researchers.
+
+---
+
+### 🚀 Key Highlights & Capabilities
+- **Google Dork Automation**: Query automation against Exploit-DB GHDB signatures and custom dork dictionaries.
+- **Stealth & Evasion**: Dynamic User-Agent header cycling and intelligent request throttling to avoid HTTP 429 rate limiting.
+- **High-Performance Local Database**: Fast local JSON cache enabling offline and instant keyword/category filtering.
+- **Cyberpunk Terminal Interface (TUI & CLI)**:
+  - Interactive colored terminal menu with ASCII artwork banner.
+  - Headless batch mode for automated security scanning pipelines.
+- **Multi-Format Export**: One-click results export to \`JSON\`, \`CSV\`, and formatted \`TXT\`.
+- **Debian & Kali Linux Native**: Full desktop application integration (\`dorkmaster.desktop\`) with high-resolution system icons.
+
+---
+
+### 📦 Installation Guide
+
+#### 1. Debian / Kali Linux / Ubuntu (\`.deb\`)
+Download the pre-compiled Debian package and install via \`dpkg\`:
+\`\`\`bash
+# Install Debian binary
+sudo dpkg -i ${{ env.RELEASE_NAME }}_all.deb
+
+# Resolve any missing system dependencies
+sudo apt-get update && sudo apt-get install -f -y
+
+# Verify installation
+dorkmaster --version
+\`\`\`
+
+#### 2. Python Wheel / Pip (\`.whl\`)
+Install directly into your Python environment:
+\`\`\`bash
+pip install dorkmaster-${{ env.VER }}-py3-none-any.whl
+dorkmaster --help
+\`\`\`
+
+---
+
+### 🛡️ Release Artifacts & SHA-256 Checksums
+
+Verify the authenticity of downloaded binaries against the cryptographic hashes below:
+
+| File Name | SHA-256 Checksum |
+|:---|:---|
+EOF
+
+          # Dynamically populate checksum table
+          while IFS= read -r line; do
+            hash=$(echo "$line" | awk '{print $1}')
+            fname=$(echo "$line" | awk '{print $2}')
+            if [ "$fname" != "SHA256SUMS.txt" ]; then
+              echo "| \`$fname\` | \`$hash\` |" >> release_notes.md
+            fi
+          done < release_assets/SHA256SUMS.txt
+
+          cat << 'EOF' >> release_notes.md
+
+---
+
+*Build generated automatically by GitHub Actions workflow for **${{ env.RELEASE_NAME }}**.*  
+*Maintained by **Owlopia & infinitydecoder** under the MIT License.*
+EOF
+          echo "Generated release notes:"
+          cat release_notes.md
+
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ env.RELEASE_NAME }}
           tag_name: ${{ env.TAG_NAME }}
+          body_path: release_notes.md
           files: release_assets/*
-          generate_release_notes: true
+          generate_release_notes: false
           draft: false
           prerelease: false
         env:

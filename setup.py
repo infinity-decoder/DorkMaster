@@ -1,13 +1,6 @@
 import os
 import sys
-
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    print("[-] 'setuptools' is required to build or install DorkMaster.", file=sys.stderr)
-    print("[!] On Debian/Ubuntu/Kali Linux: sudo apt install python3-setuptools", file=sys.stderr)
-    print("[!] Or with pip: pip install setuptools", file=sys.stderr)
-    sys.exit(1)
+from setuptools import setup, find_packages
 
 # Read README.md for long description if available
 long_description = ""
