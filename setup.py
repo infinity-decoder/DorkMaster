@@ -30,17 +30,6 @@ setup(
     },
     include_package_data=True,
     python_requires=">=3.8",
-    install_requires=[
-        "requests>=2.28.0",
-        "beautifulsoup4>=4.11.0",
-        "colorama>=0.4.5",
-        "pyfiglet>=0.8.post1",
-        "googlesearch-python>=1.2.3",
-        "questionary>=1.10.0",
-        "tqdm>=4.64.0",
-        "tabulate>=0.8.10",
-        "ascii-magic>=2.3.0",
-    ],
     entry_points={
         "console_scripts": [
             "dorkmaster = dorkmaster.cli:main",

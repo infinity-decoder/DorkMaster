@@ -31,10 +31,12 @@ jobs:
           if [ -z "$VER" ] || [ "$VER" = "main" ]; then
             VER="0.0.1"
           fi
+          TAG_NAME="v${VER}"
           RELEASE_NAME="DorkMaster_v${VER}"
           echo "VER=${VER}" >> $GITHUB_ENV
+          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
           echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
-          echo "Release target: ${RELEASE_NAME}"
+          echo "Release target: ${RELEASE_NAME} (tag: ${TAG_NAME})"
 
       - name: Install Debian Packaging System Dependencies
         run: |
@@ -79,7 +81,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ env.RELEASE_NAME }}
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ env.TAG_NAME }}
           files: release_assets/*
           generate_release_notes: true
           draft: false
