@@ -12,7 +12,7 @@ on:
 jobs:
   build-and-release:
     name: Build Debian Package & Release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
 
@@ -23,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Parse Version & Release Metadata
         id: vars
@@ -43,29 +43,41 @@ jobs:
           echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
           echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
 
-      - name: Install Debian Packaging System Dependencies
+      - name: Install Packaging Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y debhelper dh-python dpkg-dev build-essential fakeroot python3-all python3-all-dev python3-setuptools python3-wheel python3-pip python3-stdeb
-
-      - name: Install Python Build Dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install "setuptools<72.0.0" wheel stdeb
+          sudo apt-get install -y dpkg-dev
+          python3 -m pip install --upgrade pip build wheel setuptools
 
       - name: Build Debian Package
         run: |
-          python3 setup.py --command-packages=stdeb.command bdist_deb
           mkdir -p release_assets
-          cp deb_dist/*.deb release_assets/
-          for f in deb_dist/*.deb; do
-            cp "$f" "release_assets/${{ env.RELEASE_NAME }}_all.deb"
-          done
+          PKG_BUILD="build_deb/dorkmaster"
+          rm -rf "$PKG_BUILD"
+          mkdir -p "$PKG_BUILD/DEBIAN"
+          mkdir -p "$PKG_BUILD/usr/bin"
+          mkdir -p "$PKG_BUILD/usr/lib/python3/dist-packages/dorkmaster"
+          mkdir -p "$PKG_BUILD/usr/share/applications"
+          mkdir -p "$PKG_BUILD/usr/share/icons/hicolor/128x128/apps"
+          mkdir -p "$PKG_BUILD/usr/share/doc/dorkmaster"
+
+          cp -r dorkmaster/* "$PKG_BUILD/usr/lib/python3/dist-packages/dorkmaster/"
+
+          printf '#!/usr/bin/env python3\nimport sys\nfrom dorkmaster.cli import main\n\nif __name__ == "__main__":\n    sys.exit(main())\n' > "$PKG_BUILD/usr/bin/dorkmaster"
+          chmod 755 "$PKG_BUILD/usr/bin/dorkmaster"
+
+          cp dorkmaster.desktop "$PKG_BUILD/usr/share/applications/"
+          cp assets/dorkmaster.png "$PKG_BUILD/usr/share/icons/hicolor/128x128/apps/"
+          cp LICENSE "$PKG_BUILD/usr/share/doc/dorkmaster/copyright"
+
+          printf "Package: dorkmaster\nVersion: %s\nSection: net\nPriority: optional\nArchitecture: all\nMaintainer: Owlopia & infinitydecoder <contact@owlopia.dev>\nDepends: python3, python3-requests, python3-bs4, python3-colorama, python3-tabulate, python3-pil, python3-tqdm, python3-pyfiglet\nDescription: Automated Google Dorking and OSINT Reconnaissance Tool\n DorkMaster is an automated Google Dorking and OSINT reconnaissance tool.\n" "${{ env.VER }}" > "$PKG_BUILD/DEBIAN/control"
+
+          dpkg-deb --build --root-owner-group "$PKG_BUILD" "release_assets/${{ env.RELEASE_NAME }}_all.deb"
+          rm -rf build_deb
 
       - name: Build Python Wheel & Source Distribution
         run: |
-          python3 setup.py sdist bdist_wheel
-          cp dist/* release_assets/
+          python3 -m build --sdist --wheel --outdir release_assets/
 
       - name: Generate Release Notes
         run: |
