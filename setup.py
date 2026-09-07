@@ -1,0 +1,63 @@
+import os
+import sys
+
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    print("[-] 'setuptools' is required to build or install DorkMaster.", file=sys.stderr)
+    print("[!] On Debian/Ubuntu/Kali Linux: sudo apt install python3-setuptools", file=sys.stderr)
+    print("[!] Or with pip: pip install setuptools", file=sys.stderr)
+    sys.exit(1)
+
+# Read README.md for long description if available
+long_description = ""
+if os.path.exists("README.md"):
+    with open("README.md", "r", encoding="utf-8") as fh:
+        long_description = fh.read()
+
+setup(
+    name="dorkmaster",
+    version="0.0.1",
+    author="Owlopia & infinitydecoder",
+    author_email="contact@owlopia.dev",
+    description="Automated Google Dorking and OSINT Reconnaissance Tool",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/Owlopia/DorkMaster",
+    packages=find_packages(),
+    package_data={
+        "dorkmaster": ["assets/*.png"],
+    },
+    include_package_data=True,
+    python_requires=">=3.8",
+    install_requires=[
+        "requests>=2.28.0",
+        "beautifulsoup4>=4.11.0",
+        "colorama>=0.4.5",
+        "pyfiglet>=0.8.post1",
+        "googlesearch-python>=1.2.3",
+        "questionary>=1.10.0",
+        "tqdm>=4.64.0",
+        "tabulate>=0.8.10",
+        "ascii-magic>=2.3.0",
+    ],
+    entry_points={
+        "console_scripts": [
+            "dorkmaster = dorkmaster.cli:main",
+        ],
+    },
+    data_files=[
+        ("share/applications", ["dorkmaster.desktop"]),
+        ("share/icons/hicolor/128x128/apps", ["assets/dorkmaster.png"]),
+    ],
+    license="MIT",
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: System Administrators",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3",
+        "Topic :: Security",
+    ],
+)

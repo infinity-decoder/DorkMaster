@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=DorkMaster
+GenericName=Google Dorking & OSINT Tool
+Comment=Automated Google Dorking and OSINT Reconnaissance Tool
+Exec=dorkmaster
+Icon=dorkmaster
+Terminal=true
+Categories=01-info-gathering;03-webapp-analysis;Network;Security;
+Keywords=dork;osint;recon;google;security;pentest;infosec;kali;
+StartupNotify=false

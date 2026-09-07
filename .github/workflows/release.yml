@@ -1,0 +1,88 @@
+name: Build and Release Linux Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    name: Build Debian Package & Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Parse Version & Release Metadata
+        id: vars
+        run: |
+          RAW_TAG="${{ github.ref_name }}"
+          # Strip leading 'v' if present to normalize version number
+          VER="${RAW_TAG#v}"
+          if [ -z "$VER" ] || [ "$VER" = "main" ]; then
+            VER="0.0.1"
+          fi
+          RELEASE_NAME="DorkMaster_v${VER}"
+          echo "VER=${VER}" >> $GITHUB_ENV
+          echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
+          echo "Release target: ${RELEASE_NAME}"
+
+      - name: Install Debian Packaging System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            debhelper \
+            dh-python \
+            dpkg-dev \
+            build-essential \
+            fakeroot \
+            python3-all \
+            python3-setuptools \
+            python3-stdeb
+
+      - name: Install Python Build Dependencies & stdeb
+        run: |
+          python3 -m pip install --upgrade pip
+          # Explicitly install stdeb and setuptools in toolcache python environment
+          python3 -m pip install "setuptools<72.0.0" wheel stdeb
+          python3 setup.py check
+
+      - name: Build Debian Package (.deb)
+        run: |
+          export SETUPTOOLS_USE_DISTUTILS=stdlib
+          python3 setup.py --command-packages=stdeb.command bdist_deb
+          mkdir -p release_assets
+          # Copy deb files to release assets directory
+          cp deb_dist/*.deb release_assets/
+          # Create standardized DorkMaster_vX.X.X_all.deb binary
+          for f in deb_dist/*.deb; do
+            cp "$f" "release_assets/${{ env.RELEASE_NAME }}_all.deb"
+          done
+          echo "Generated Debian package assets:"
+          ls -la release_assets/
+
+      - name: Build Python Wheel & Tarball
+        run: |
+          python3 setup.py sdist bdist_wheel
+          cp dist/* release_assets/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ env.RELEASE_NAME }}
+          tag_name: ${{ github.ref_name }}
+          files: release_assets/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
