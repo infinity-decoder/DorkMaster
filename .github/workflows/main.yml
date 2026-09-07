@@ -7,7 +7,6 @@ on:
       - master
     tags:
       - 'v*'
-      - '[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
 
 jobs:
@@ -29,12 +28,10 @@ jobs:
       - name: Parse Version & Release Metadata
         id: vars
         run: |
-          # Detect whether trigger was a git tag or a direct branch push
           if echo "${{ github.ref }}" | grep -q "^refs/tags/"; then
             RAW_TAG="${{ github.ref_name }}"
             VER="${RAW_TAG#v}"
           else
-            # On direct branch push (e.g. main), extract version dynamically from dorkmaster package
             VER=$(python3 -c "import dorkmaster; print(dorkmaster.__version__)" 2>/dev/null || echo "0.0.1")
           fi
           if [ -z "$VER" ]; then
@@ -45,66 +42,44 @@ jobs:
           echo "VER=${VER}" >> $GITHUB_ENV
           echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
           echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
-          echo "Target Release: ${RELEASE_NAME} (Tag: ${TAG_NAME})"
 
       - name: Install Debian Packaging System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            debhelper \
-            dh-python \
-            dpkg-dev \
-            build-essential \
-            fakeroot \
-            python3-all \
-            python3-all-dev \
-            python3-setuptools \
-            python3-wheel \
-            python3-pip \
-            python3-stdeb
+          sudo apt-get install -y debhelper dh-python dpkg-dev build-essential fakeroot python3-all python3-all-dev python3-setuptools python3-wheel python3-pip python3-stdeb
 
-      - name: Install Python Build Dependencies & Tools
+      - name: Install Python Build Dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install "setuptools<72.0.0" wheel stdeb
 
-      - name: Build Debian Package (.deb)
+      - name: Build Debian Package
         run: |
-          # Build source package and binary .deb using stdeb
           python3 setup.py --command-packages=stdeb.command bdist_deb
           mkdir -p release_assets
-          # Copy generated Debian packages to release assets
           cp deb_dist/*.deb release_assets/
-          # Copy branded DorkMaster_vX.X.X_all.deb binary
           for f in deb_dist/*.deb; do
             cp "$f" "release_assets/${{ env.RELEASE_NAME }}_all.deb"
           done
-          echo "Generated Debian package assets:"
-          ls -la release_assets/
 
       - name: Build Python Wheel & Source Distribution
         run: |
           python3 setup.py sdist bdist_wheel
           cp dist/* release_assets/
 
-      - name: Generate Professional Release Notes & Checksums
+      - name: Generate Release Notes
         run: |
-          cd release_assets
-          # Compute cryptographic SHA-256 hashes for all artifacts
-          sha256sum * > SHA256SUMS.txt
-          cd ..
-
-            cat > release_notes.md << 'EOF'
-# 🦅 DorkMaster v${{ env.VER }} — Production Release
-
-
-
-
-*Build generated automatically by GitHub Actions workflow for **${{ env.RELEASE_NAME }}**.*  
-*Maintained by **Owlopia ** under the MIT License.*
-EOF
-          echo "Generated release notes:"
-          cat release_notes.md
+          echo "## Release: ${{ env.RELEASE_NAME }}" > release_notes.md
+          echo "- **Version:** ${{ env.VER }}" >> release_notes.md
+          echo "- **Tag:** ${{ env.TAG_NAME }}" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Generated Assets" >> release_notes.md
+          for file in release_assets/*; do
+            if [ -f "$file" ]; then
+              fname=$(basename "$file")
+              echo "- $fname" >> release_notes.md
+            fi
+          done
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -113,7 +88,6 @@ EOF
           tag_name: ${{ env.TAG_NAME }}
           body_path: release_notes.md
           files: release_assets/*
-          generate_release_notes: false
           draft: false
           prerelease: false
         env:
