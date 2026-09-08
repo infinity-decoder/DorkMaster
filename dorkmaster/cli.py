@@ -60,6 +60,21 @@ def parse_args(args=None):
     )
 
     parser.add_argument(
+        "--site",
+        metavar="DOMAIN",
+        default=None,
+        help="Append target site constraint (e.g. --site example.com -> site:example.com)",
+    )
+
+    parser.add_argument(
+        "-p",
+        "--param",
+        metavar="PARAM",
+        default=None,
+        help="Append custom parameter or keyword filter to query (e.g. filetype:log)",
+    )
+
+    parser.add_argument(
         "--stats",
         action="store_true",
         help="Show statistics, last sync timestamp, and storage locations",
@@ -123,18 +138,27 @@ def main():
 
         # 3. Direct Google Query Execution
         if args.query:
+            query = args.query
+            if args.site:
+                site_filter = args.site if args.site.startswith("site:") else f"site:{args.site}"
+                query = f"{query} {site_filter}".strip()
+            if args.param:
+                query = f"{query} {args.param}".strip()
+
             if args.browser:
-                print(f"[*] Opening '{args.query}' in default browser...")
-                DorkSearcher.open_in_browser(args.query)
+                print(f"[*] Opening '{query}' in default browser...")
+                DorkSearcher.open_in_browser(query)
             else:
                 display_banner(version=__version__, author=__author__)
-                print(f"[*] Executing query: {args.query} (limit: {args.num})...")
-                results = DorkSearcher.search(args.query, num_results=args.num)
+                print(f"[*] Executing query: {query} (limit: {args.num})...")
+                results = DorkSearcher.search(query, num_results=args.num)
                 if not results:
                     print("[-] No results returned or rate-limited.")
                 else:
                     rows = [[i, r["title"][:50], r["url"]] for i, r in enumerate(results, 1)]
                     print(Utils.format_table(rows, headers=["#", "Title", "URL"]))
+                google_url = DorkSearcher.build_google_url(query, num=args.num)
+                print(f"[*] Search URL: {google_url}")
             return 0
 
         # 4. Keyword Search in Cached Database
@@ -142,16 +166,37 @@ def main():
             display_banner(version=__version__, author=__author__)
             matches = app.db.search(args.search)
             print(f"[*] Found {len(matches)} matching dorks for '{args.search}':\n")
+            display_limit = min(len(matches), args.num)
             rows = [
                 [i + 1, d.get("dork", "")[:50], d.get("category", "")[:20], d.get("date", "")]
-                for i, d in enumerate(matches[: args.num])
+                for i, d in enumerate(matches[:display_limit])
             ]
             if rows:
                 print(Utils.format_table(rows, headers=["#", "Dork", "Category", "Date"]))
                 if len(matches) > args.num:
-                    print(f"\n[!] Displaying top {args.num} of {len(matches)} results. Increase with -n COUNT.")
+                    print(f"\n[!] Displaying top {display_limit} of {len(matches)} results. Increase with -n COUNT.")
             else:
                 print("[-] No matching dorks found in local database.")
+                return 0
+
+            # Interactive dork selection, parameter modification, and execution
+            if sys.stdin.isatty():
+                try:
+                    from dorkmaster.core import RESET, YELLOW
+                    prompt = f"\n{YELLOW}Select dork # to edit/execute (1-{display_limit}, or Enter to exit): {RESET}"
+                    sel = input(prompt).strip()
+                    if sel.isdigit():
+                        idx = int(sel) - 1
+                        if 0 <= idx < display_limit:
+                            chosen_dork = matches[idx].get("dork", "")
+                            if args.site:
+                                site_filter = args.site if args.site.startswith("site:") else f"site:{args.site}"
+                                chosen_dork = f"{chosen_dork} {site_filter}".strip()
+                            if args.param:
+                                chosen_dork = f"{chosen_dork} {args.param}".strip()
+                            app._modify_and_execute(chosen_dork)
+                except (KeyboardInterrupt, EOFError):
+                    print("\n[*] Exiting.")
             return 0
 
         # 5. Default: Interactive Cyberpunk TUI Dashboard

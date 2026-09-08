@@ -1,23 +1,91 @@
-# Python
+# =====================================================================
+# DorkMaster - Linux Package Git Ignore Rules
+# =====================================================================
+
+# --- Web UI / Dev Server & AI Studio Preview Artifacts ---
+# These files are used solely to run the live web preview/dev server
+# in web sandbox environments and must NOT be committed to GitHub.
+server.js
+server.ts
+server.cjs
+server.mjs
+package.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+metadata.json
+node_modules/
+.npm/
+.npmrc
+.next/
+.nuxt/
+.vite/
+.parcel-cache/
+vite.config.*
+webpack.config.*
+rollup.config.*
+postcss.config.*
+tailwind.config.*
+tsconfig.json
+public/
+web/
+ui/
+html/
+run.bat
+run_web.sh
+
+# --- Python Build, Packaging & Debian Artifacts ---
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+build_deb/
+test_deb_build/
+deb_dist/
+stdeb_dist/
+release_assets/
+*.deb
+*.whl
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.zip
+
+# --- Python Virtual Environments ---
 .venv/
 venv/
 ENV/
+env/
+.env/
 
-# DorkMaster Data & Logs
-logs/*.log
-data/*.json
+# --- Environment Variables & Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Logs, Runtime Cache & Temporary Files ---
+logs/
+*.log
+*.sqlite
+*.sqlite3
 data/*.db
-data/export_dorks.json
+data/export_dorks.*
+!data/dorks.json
 
-# IDEs
+# --- Platform & Container Artifacts ---
+.aistudio/
+.system_generated/
+.devcontainer/
+
+# --- IDE, Editor & OS Artifacts ---
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS
+*~
 .DS_Store
 Thumbs.db

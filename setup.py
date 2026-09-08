@@ -19,10 +19,18 @@ setup(
     url="https://github.com/Owlopia/DorkMaster",
     packages=find_packages(),
     package_data={
-        "dorkmaster": ["assets/*.png"],
+        "dorkmaster": ["assets/*.png", "data/*.json"],
     },
     include_package_data=True,
     python_requires=">=3.8",
+    install_requires=[
+        "requests>=2.28.0",
+        "beautifulsoup4>=4.11.0",
+        "colorama>=0.4.5",
+        "tabulate>=0.8.10",
+        "pyfiglet>=0.8.post1",
+        "tqdm>=4.64.0",
+    ],
     entry_points={
         "console_scripts": [
             "dorkmaster = dorkmaster.cli:main",
@@ -31,6 +39,7 @@ setup(
     data_files=[
         ("share/applications", ["dorkmaster.desktop"]),
         ("share/icons/hicolor/128x128/apps", ["assets/dorkmaster.png"]),
+        ("share/dorkmaster", ["data/dorks.json"]),
     ],
     license="MIT",
     classifiers=[

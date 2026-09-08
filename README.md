@@ -72,12 +72,8 @@ sudo dpkg -i deb_dist/dorkmaster_*.deb
 
 ### Method 4: Portable / Local Runner
 ```bash
-# Linux / macOS:
 chmod +x run.sh
 ./run.sh
-
-# Windows:
-run.bat
 ```
 
 ---
@@ -88,7 +84,8 @@ DorkMaster provides both an interactive Cyberpunk dashboard and a scriptable CLI
 
 ```text
 usage: dorkmaster [-h] [-v] [-s KEYWORD] [-q DORK] [-b] [-n COUNT] [--sync]
-                  [--update] [--stats] [--data-path PATH]
+                  [--site DOMAIN] [-p PARAM] [--stats] [--banner]
+                  [--data-path PATH]
 
 options:
   -h, --help            Show this help message and exit
@@ -99,8 +96,11 @@ options:
   -b, --browser         Open search results directly in default web browser
   -n COUNT, --num COUNT Number of results to retrieve (default: 10)
   --sync                Synchronize full Exploit-DB GHDB library into local storage
-  --update              Check and fetch newest dork additions incrementally
+  --site DOMAIN         Append target site constraint (e.g. --site example.com)
+  -p PARAM, --param PARAM
+                        Append custom parameter or keyword filter to query
   --stats               Show statistics, last sync timestamp, and storage locations
+  --banner              Display the DorkMaster terminal ANSI art banner and exit
   --data-path PATH      Custom path to dorks database JSON file
 ```
 
@@ -111,25 +111,38 @@ options:
    dorkmaster
    ```
 
-2. **Search Local Dorks for a Keyword**:
+2. **Search Cached Dorks & Interactively Edit / Add Parameters**:
    ```bash
-   dorkmaster --search "phpmyadmin"
+   dorkmaster --search "jenkins"
    ```
+   *Prompts you to select a matching dork, customize parameters (e.g. append `site:target.com` or custom keywords), and choose execution target (Terminal or Web Browser).*
 
-3. **Execute a Raw Dork Query and Scrape 15 Results**:
+3. **Execute Dork with Target Site Parameter in Terminal**:
    ```bash
-   dorkmaster --query "inurl:admin login" -n 15
+   dorkmaster --query 'intitle:"Dashboard [Jenkins]"' --site example.com -n 10
    ```
 
 4. **Execute Query in Live Web Browser**:
    ```bash
-   dorkmaster --query "filetype:env DB_PASSWORD" --browser
+   dorkmaster --query "filetype:env DB_PASSWORD" --site example.com --browser
    ```
 
-5. **Sync Full GHDB Database via Terminal Script**:
+5. **Sync Full Exploit-DB GHDB Database via Terminal**:
    ```bash
    dorkmaster --sync
    ```
+
+---
+
+## 🎯 Interactive Dork Inspection & Parameter Customizer
+
+When browsing or searching dorks in DorkMaster, selecting any dork opens the **Parameter Modifier & Query Executor**:
+- **[1] Append Target Domain / Site**: Automatically applies `site:<domain>`.
+- **[2] Append Parameter / Keyword**: Appends custom filters (`filetype:pdf`, `inurl:admin`, `intext:password`).
+- **[3] Manually Edit Query String**: Directly refine the query string in real-time.
+- **[4] Reset to Original Query**: Reverts modifications back to the original GHDB signature.
+- **[T] Execute via Terminal**: Runs OSINT CLI scraping with formatted table output.
+- **[B] Execute via Browser**: Launches Google Search directly in the default graphical web browser.
 
 ---
 

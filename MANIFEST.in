@@ -1,0 +1,28 @@
+include README.md
+include LICENSE
+include requirements.txt
+include pyproject.toml
+include setup.py
+include stdeb.cfg
+include dorkmaster.desktop
+include run.sh
+
+recursive-include assets *.png *.svg
+recursive-include data *.json
+recursive-include dorkmaster *.py *.json *.png
+
+# Exclude web preview / dev server files & build artifacts
+exclude server.js
+exclude server.*
+exclude package.json
+exclude package-lock.json
+exclude metadata.json
+exclude run.bat
+exclude *.deb
+prune node_modules
+prune build_deb
+prune release_assets
+prune test_deb_build
+prune deb_dist
+prune stdeb_dist
+prune .github
