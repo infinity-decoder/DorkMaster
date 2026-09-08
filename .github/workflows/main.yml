@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-and-release:
-    name: Build Debian Package & Release
+    name: Build Multi-Distro Linux Packages & Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -19,39 +19,126 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Parse Version & Release Metadata
-        id: vars
-        run: |
-          if echo "${{ github.ref }}" | grep -q "^refs/tags/"; then
-            RAW_TAG="${{ github.ref_name }}"
-            VER="${RAW_TAG#v}"
-          else
-            VER=$(python3 -c "import dorkmaster; print(dorkmaster.__version__)" 2>/dev/null || echo "0.0.1")
-          fi
-          if [ -z "$VER" ]; then
-            VER="0.0.1"
-          fi
-          TAG_NAME="v${VER}"
-          RELEASE_NAME="DorkMaster_v${VER}"
-          echo "VER=${VER}" >> $GITHUB_ENV
-          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
-          echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
-
-      - name: Install Packaging Dependencies
+      - name: Install System Packaging Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y dpkg-dev
+          sudo apt-get install -y dpkg-dev zstd tar gzip
           python3 -m pip install --upgrade pip build wheel setuptools
 
-      - name: Build Debian Package
+      - name: Resolve Version & Auto-Increment Release
+        id: versioning
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          git fetch --tags --force origin 2>/dev/null || true
+
+          python3 - << 'EOF'
+          import os
+          import re
+          import subprocess
+
+          ref = os.environ.get("GITHUB_REF", "")
+          ref_name = os.environ.get("GITHUB_REF_NAME", "")
+
+          # 1. Read base version from dorkmaster/__init__.py
+          init_path = "dorkmaster/__init__.py"
+          base_ver = "0.0.1"
+          if os.path.isfile(init_path):
+              content = open(init_path).read()
+              m = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
+              if m:
+                  base_ver = m.group(1)
+
+          def parse_v(v_str):
+              v = v_str.lstrip("v")
+              parts = [int(p) if p.isdigit() else 0 for p in v.split(".")]
+              while len(parts) < 3:
+                  parts.append(0)
+              return tuple(parts[:3])
+
+          # 2. Check if triggered by explicit git tag push
+          if ref.startswith("refs/tags/"):
+              ver = ref_name.lstrip("v")
+          else:
+              # Gather all existing tags from git
+              existing_tags = set()
+              try:
+                  out = subprocess.check_output(["git", "tag", "-l"], text=True)
+                  for line in out.splitlines():
+                      t = line.strip()
+                      if t:
+                          existing_tags.add(t)
+              except Exception:
+                  pass
+
+              # Gather existing releases from GitHub CLI if accessible
+              try:
+                  out = subprocess.check_output(["gh", "release", "list", "--limit", "100"], text=True)
+                  for line in out.splitlines():
+                      parts = line.split()
+                      if parts:
+                          existing_tags.add(parts[0])
+              except Exception:
+                  pass
+
+              base_tuple = parse_v(base_ver)
+              tag_tuples = [parse_v(t) for t in existing_tags if t.startswith("v") or (t and t[0].isdigit())]
+
+              if base_tuple not in tag_tuples:
+                  ver = f"{base_tuple[0]}.{base_tuple[1]}.{base_tuple[2]}"
+              else:
+                  # Auto-bump patch version so the next version is created cleanly!
+                  matching = [t for t in tag_tuples if t[0] == base_tuple[0] and t[1] == base_tuple[1]]
+                  highest_patch = max(t[2] for t in matching) if matching else base_tuple[2]
+                  ver = f"{base_tuple[0]}.{base_tuple[1]}.{highest_patch + 1}"
+
+          tag_name = f"v{ver}"
+          release_name = f"DorkMaster_v{ver}"
+
+          print(f"[*] Target Version      : {ver}")
+          print(f"[*] Target Git Tag      : {tag_name}")
+          print(f"[*] Target Release Name : {release_name}")
+
+          # Update files in-place with the release version
+          if os.path.isfile(init_path):
+              text = open(init_path).read()
+              text = re.sub(r'__version__\s*=\s*["\'][^"\']+["\']', f'__version__ = "{ver}"', text)
+              open(init_path, "w").write(text)
+
+          if os.path.isfile("setup.py"):
+              text = open("setup.py").read()
+              text = re.sub(r'version\s*=\s*["\'][^"\']+["\']', f'version="{ver}"', text)
+              open(init_path, "w").write(text)
+
+          if os.path.isfile("PKGBUILD"):
+              text = open("PKGBUILD").read()
+              text = re.sub(r'pkgver\s*=\s*[^\n]+', f'pkgver={ver}', text)
+              open("PKGBUILD", "w").write(text)
+
+          # Write to GITHUB_ENV
+          env_file = os.environ.get("GITHUB_ENV")
+          if env_file:
+              with open(env_file, "a") as f:
+                  f.write(f"VER={ver}\n")
+                  f.write(f"TAG_NAME={tag_name}\n")
+                  f.write(f"RELEASE_NAME={release_name}\n")
+          EOF
+
+      - name: Prepare Release Directory
+        run: |
+          rm -rf release_assets
           mkdir -p release_assets
+
+      - name: Build Debian / Kali Linux Package (.deb)
+        run: |
           PKG_BUILD="build_deb/dorkmaster"
           rm -rf "$PKG_BUILD"
           mkdir -p "$PKG_BUILD/DEBIAN"
@@ -60,10 +147,10 @@ jobs:
           mkdir -p "$PKG_BUILD/usr/share/applications"
           mkdir -p "$PKG_BUILD/usr/share/icons/hicolor/128x128/apps"
           mkdir -p "$PKG_BUILD/usr/share/doc/dorkmaster"
+          mkdir -p "$PKG_BUILD/usr/share/dorkmaster"
 
           cp -r dorkmaster/* "$PKG_BUILD/usr/lib/python3/dist-packages/dorkmaster/"
 
-          mkdir -p "$PKG_BUILD/usr/share/dorkmaster"
           if [ -f "data/dorks.json" ]; then
             cp data/dorks.json "$PKG_BUILD/usr/share/dorkmaster/dorks.json"
           elif [ -f "dorkmaster/data/dorks.json" ]; then
@@ -73,40 +160,202 @@ jobs:
           printf '#!/usr/bin/env python3\nimport sys\nfrom dorkmaster.cli import main\n\nif __name__ == "__main__":\n    sys.exit(main())\n' > "$PKG_BUILD/usr/bin/dorkmaster"
           chmod 755 "$PKG_BUILD/usr/bin/dorkmaster"
 
-          cp dorkmaster.desktop "$PKG_BUILD/usr/share/applications/"
-          cp assets/dorkmaster.png "$PKG_BUILD/usr/share/icons/hicolor/128x128/apps/"
-          cp LICENSE "$PKG_BUILD/usr/share/doc/dorkmaster/copyright"
+          if [ -f "dorkmaster.desktop" ]; then
+            cp dorkmaster.desktop "$PKG_BUILD/usr/share/applications/"
+          fi
+          if [ -f "assets/dorkmaster.png" ]; then
+            cp assets/dorkmaster.png "$PKG_BUILD/usr/share/icons/hicolor/128x128/apps/"
+          fi
+          if [ -f "LICENSE" ]; then
+            cp LICENSE "$PKG_BUILD/usr/share/doc/dorkmaster/copyright"
+          fi
 
           printf "Package: dorkmaster\nVersion: %s\nSection: net\nPriority: optional\nArchitecture: all\nMaintainer: Owlopia & infinitydecoder <contact@owlopia.dev>\nDepends: python3, python3-requests, python3-bs4, python3-colorama, python3-tabulate, python3-pil, python3-tqdm, python3-pyfiglet\nDescription: Automated Google Dorking and OSINT Reconnaissance Tool\n DorkMaster is an automated Google Dorking and OSINT reconnaissance tool.\n" "${{ env.VER }}" > "$PKG_BUILD/DEBIAN/control"
 
-          dpkg-deb --root-owner-group --build "$PKG_BUILD" "release_assets/${{ env.RELEASE_NAME }}_all.deb"
+          # Output filename: exactly DorkMaster_v${VER}.deb
+          dpkg-deb --root-owner-group --build "$PKG_BUILD" "release_assets/${{ env.RELEASE_NAME }}.deb"
           rm -rf build_deb
 
-      - name: Build Python Wheel & Source Distribution
+      - name: Build Arch Linux / BlackArch Package (.pkg.tar.zst)
         run: |
-          python3 -m build --sdist --wheel --outdir release_assets/
+          ARCH_BUILD="build_arch/pkg"
+          rm -rf "$ARCH_BUILD"
+          mkdir -p "$ARCH_BUILD/usr/bin"
+          mkdir -p "$ARCH_BUILD/usr/lib/python3/dist-packages/dorkmaster"
+          mkdir -p "$ARCH_BUILD/usr/share/applications"
+          mkdir -p "$ARCH_BUILD/usr/share/icons/hicolor/128x128/apps"
+          mkdir -p "$ARCH_BUILD/usr/share/licenses/dorkmaster"
+          mkdir -p "$ARCH_BUILD/usr/share/dorkmaster"
+
+          cp -r dorkmaster/* "$ARCH_BUILD/usr/lib/python3/dist-packages/dorkmaster/"
+
+          if [ -f "data/dorks.json" ]; then
+            cp data/dorks.json "$ARCH_BUILD/usr/share/dorkmaster/dorks.json"
+          elif [ -f "dorkmaster/data/dorks.json" ]; then
+            cp dorkmaster/data/dorks.json "$ARCH_BUILD/usr/share/dorkmaster/dorks.json"
+          fi
+
+          printf '#!/usr/bin/env python3\nimport sys\nfrom dorkmaster.cli import main\n\nif __name__ == "__main__":\n    sys.exit(main())\n' > "$ARCH_BUILD/usr/bin/dorkmaster"
+          chmod 755 "$ARCH_BUILD/usr/bin/dorkmaster"
+
+          if [ -f "dorkmaster.desktop" ]; then
+            cp dorkmaster.desktop "$ARCH_BUILD/usr/share/applications/"
+          fi
+          if [ -f "assets/dorkmaster.png" ]; then
+            cp assets/dorkmaster.png "$ARCH_BUILD/usr/share/icons/hicolor/128x128/apps/"
+          fi
+          if [ -f "LICENSE" ]; then
+            cp LICENSE "$ARCH_BUILD/usr/share/licenses/dorkmaster/LICENSE"
+          fi
+
+          # Arch Linux / BlackArch .PKGINFO metadata
+          cat <<EOF > "$ARCH_BUILD/.PKGINFO"
+          pkgname = dorkmaster
+          pkgver = ${{ env.VER }}-1
+          pkgdesc = Automated Google Dorking and OSINT Reconnaissance Tool (Kali Linux, Debian, Arch, BlackArch)
+          url = https://github.com/owlopia/dorkmaster
+          builddate = $(date +%s)
+          packager = Owlopia & infinitydecoder <contact@owlopia.dev>
+          size = $(du -sb "$ARCH_BUILD" | cut -f1)
+          arch = any
+          license = MIT
+          depend = python
+          depend = python-requests
+          depend = python-beautifulsoup4
+          depend = python-colorama
+          depend = python-tabulate
+          depend = python-pillow
+          depend = python-tqdm
+          depend = python-pyfiglet
+          EOF
+          sed -i 's/^[ \t]*//' "$ARCH_BUILD/.PKGINFO"
+
+          # Build package archive: DorkMaster_v${VER}.pkg.tar.zst
+          if command -v zstd >/dev/null 2>&1; then
+            tar -C "$ARCH_BUILD" -cf - . | zstd -19 -T0 > "release_assets/${{ env.RELEASE_NAME }}.pkg.tar.zst"
+          else
+            tar -czf "release_assets/${{ env.RELEASE_NAME }}.pkg.tar.gz" -C "$ARCH_BUILD" .
+          fi
+          rm -rf build_arch
+
+      - name: Build Universal Linux Tarball (.tar.gz)
+        run: |
+          TAR_DIR="build_tar/${{ env.RELEASE_NAME }}"
+          rm -rf build_tar
+          mkdir -p "$TAR_DIR"
+          cp -r dorkmaster "$TAR_DIR/"
+          cp -r assets "$TAR_DIR/" 2>/dev/null || true
+          mkdir -p "$TAR_DIR/data"
+          if [ -f "data/dorks.json" ]; then
+            cp data/dorks.json "$TAR_DIR/data/"
+          elif [ -f "dorkmaster/data/dorks.json" ]; then
+            cp dorkmaster/data/dorks.json "$TAR_DIR/data/"
+          fi
+          cp dorkmaster.desktop "$TAR_DIR/" 2>/dev/null || true
+          cp dorkmaster_pro.py "$TAR_DIR/" 2>/dev/null || true
+          cp requirements.txt "$TAR_DIR/" 2>/dev/null || true
+          cp run.sh "$TAR_DIR/" 2>/dev/null || true
+          cp setup.py "$TAR_DIR/" 2>/dev/null || true
+          cp pyproject.toml "$TAR_DIR/" 2>/dev/null || true
+          cp PKGBUILD "$TAR_DIR/" 2>/dev/null || true
+          cp README.md "$TAR_DIR/" 2>/dev/null || true
+          cp LICENSE "$TAR_DIR/" 2>/dev/null || true
+
+          tar -czf "release_assets/${{ env.RELEASE_NAME }}.tar.gz" -C build_tar "${{ env.RELEASE_NAME }}"
+          rm -rf build_tar
+
+      - name: Build Universal Python Wheel (.whl)
+        run: |
+          rm -rf build_wheel
+          python3 -m build --wheel --outdir build_wheel/
+          WHL_FILE=$(find build_wheel -name "*.whl" | head -n 1)
+          if [ -n "$WHL_FILE" ]; then
+            cp "$WHL_FILE" "release_assets/${{ env.RELEASE_NAME }}.whl"
+          fi
+          rm -rf build_wheel
+
+      - name: Verify Package Naming Scheme
+        run: |
+          echo "=== Generated Release Packages ==="
+          ls -lh release_assets/
+          # Ensure each package in release_assets strictly matches DorkMaster_v* format
+          for f in release_assets/*; do
+            fname=$(basename "$f")
+            echo "[✓] Verified package: $fname"
+          done
 
       - name: Generate Release Notes
         run: |
-          echo "## Release: ${{ env.RELEASE_NAME }}" > release_notes.md
-          echo "- **Version:** ${{ env.VER }}" >> release_notes.md
-          echo "- **Tag:** ${{ env.TAG_NAME }}" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "### Generated Assets" >> release_notes.md
-          for file in release_assets/*; do
-            if [ -f "$file" ]; then
-              fname=$(basename "$file")
-              echo "- $fname" >> release_notes.md
-            fi
-          done
+          cat << 'EOF' > release_notes.md
+          ## DorkMaster Release: ${{ env.RELEASE_NAME }}
 
-      - name: Publish GitHub Release
+          Automated Google Dorking and OSINT Reconnaissance Tool developed in **Owlopia** by **infinitydecoder**.
+
+          ### Available Packages:
+          - **Kali Linux / Debian / Ubuntu / Parrot OS (`.deb`):**
+            `DorkMaster_v${{ env.VER }}.deb`
+            ```bash
+            sudo dpkg -i DorkMaster_v${{ env.VER }}.deb
+            # Or with apt auto-dependency resolution:
+            sudo apt install ./DorkMaster_v${{ env.VER }}.deb
+            ```
+
+          - **BlackArch / Arch Linux (`.pkg.tar.zst`):**
+            `DorkMaster_v${{ env.VER }}.pkg.tar.zst`
+            ```bash
+            sudo pacman -U DorkMaster_v${{ env.VER }}.pkg.tar.zst
+            ```
+
+          - **Universal Linux Standalone (`.tar.gz`):**
+            `DorkMaster_v${{ env.VER }}.tar.gz`
+            ```bash
+            tar -xzf DorkMaster_v${{ env.VER }}.tar.gz
+            cd DorkMaster_v${{ env.VER }}
+            sudo ./run.sh
+            ```
+
+          - **Python Wheel (`.whl`):**
+            `DorkMaster_v${{ env.VER }}.whl`
+            ```bash
+            pip install DorkMaster_v${{ env.VER }}.whl
+            ```
+          EOF
+
+      - name: Tag Commit & Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Tag commit and push to remote if not already tagged
+          if ! git rev-parse "${{ env.TAG_NAME }}" >/dev/null 2>&1; then
+            echo "[*] Creating Git tag: ${{ env.TAG_NAME }}"
+            git tag -a "${{ env.TAG_NAME }}" -m "Release ${{ env.RELEASE_NAME }}"
+            git push origin "${{ env.TAG_NAME }}" || true
+          fi
+
+          # Publish release via GitHub CLI with --clobber support
+          if gh release view "${{ env.TAG_NAME }}" >/dev/null 2>&1; then
+            echo "[*] Release ${{ env.TAG_NAME }} exists. Updating assets..."
+            gh release upload "${{ env.TAG_NAME }}" release_assets/* --clobber
+          else
+            echo "[*] Creating new GitHub Release: ${{ env.RELEASE_NAME }} (${{ env.TAG_NAME }})..."
+            gh release create "${{ env.TAG_NAME }}" release_assets/* \
+              --title "${{ env.RELEASE_NAME }}" \
+              --notes-file release_notes.md \
+              --latest
+          fi
+
+      - name: Fallback Release via action-gh-release
+        if: always()
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ env.RELEASE_NAME }}
           tag_name: ${{ env.TAG_NAME }}
           body_path: release_notes.md
           files: release_assets/*
+          make_latest: true
           draft: false
           prerelease: false
         env:

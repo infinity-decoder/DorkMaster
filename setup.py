@@ -13,7 +13,8 @@ dorks_file = "data/dorks.json" if os.path.exists("data/dorks.json") else "dorkma
 setup(
     name="dorkmaster",
     version="0.0.1",
-    author="Owlopia & infinitydecoder",
+    author="infinitydecoder",
+    maintainer="Owlopia",
     author_email="contact@owlopia.dev",
     description="Automated Google Dorking and OSINT Reconnaissance Tool",
     long_description=long_description,
