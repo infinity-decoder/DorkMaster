@@ -64,7 +64,11 @@ jobs:
           cp -r dorkmaster/* "$PKG_BUILD/usr/lib/python3/dist-packages/dorkmaster/"
 
           mkdir -p "$PKG_BUILD/usr/share/dorkmaster"
-          cp data/dorks.json "$PKG_BUILD/usr/share/dorkmaster/dorks.json"
+          if [ -f "data/dorks.json" ]; then
+            cp data/dorks.json "$PKG_BUILD/usr/share/dorkmaster/dorks.json"
+          elif [ -f "dorkmaster/data/dorks.json" ]; then
+            cp dorkmaster/data/dorks.json "$PKG_BUILD/usr/share/dorkmaster/dorks.json"
+          fi
 
           printf '#!/usr/bin/env python3\nimport sys\nfrom dorkmaster.cli import main\n\nif __name__ == "__main__":\n    sys.exit(main())\n' > "$PKG_BUILD/usr/bin/dorkmaster"
           chmod 755 "$PKG_BUILD/usr/bin/dorkmaster"

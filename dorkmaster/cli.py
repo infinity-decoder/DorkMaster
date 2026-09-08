@@ -5,7 +5,7 @@ Orchestrates headless terminal commands and interactive Cyberpunk TUI sessions.
 
 import argparse
 import sys
-from dorkmaster import __author__, __version__
+from dorkmaster import __author__, __company__, __version__
 from dorkmaster.banner import display_banner
 
 
@@ -20,7 +20,7 @@ def parse_args(args=None):
         "-v",
         "--version",
         action="version",
-        version=f"DorkMaster v{__version__} by {__author__}",
+        version=f"DorkMaster v{__version__} - Developed in {__company__} by {__author__}",
     )
 
     parser.add_argument(
@@ -102,7 +102,7 @@ def main():
 
         # Instant banner display
         if args.banner:
-            display_banner(version=__version__, author=__author__)
+            display_banner(version=__version__, company=__company__, author=__author__)
             return 0
 
         # Lazy import of heavy modules to keep CLI snappy
@@ -118,13 +118,13 @@ def main():
 
         # 1. Sync GHDB
         if args.sync:
-            display_banner(version=__version__, author=__author__)
+            display_banner(version=__version__, company=__company__, author=__author__)
             DorkScraper.sync_all(app.db)
             return 0
 
         # 2. Stats
         if args.stats:
-            display_banner(version=__version__, author=__author__)
+            display_banner(version=__version__, company=__company__, author=__author__)
             stats = app.db.get_stats()
             rows = [
                 ["Total Dorks Cached", stats["total_dorks"]],
@@ -149,7 +149,7 @@ def main():
                 print(f"[*] Opening '{query}' in default browser...")
                 DorkSearcher.open_in_browser(query)
             else:
-                display_banner(version=__version__, author=__author__)
+                display_banner(version=__version__, company=__company__, author=__author__)
                 print(f"[*] Executing query: {query} (limit: {args.num})...")
                 results = DorkSearcher.search(query, num_results=args.num)
                 if not results:
@@ -163,7 +163,7 @@ def main():
 
         # 4. Keyword Search in Cached Database
         if args.search:
-            display_banner(version=__version__, author=__author__)
+            display_banner(version=__version__, company=__company__, author=__author__)
             matches = app.db.search(args.search)
             print(f"[*] Found {len(matches)} matching dorks for '{args.search}':\n")
             display_limit = min(len(matches), args.num)

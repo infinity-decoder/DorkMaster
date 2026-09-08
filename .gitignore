@@ -75,6 +75,7 @@ logs/
 data/*.db
 data/export_dorks.*
 !data/dorks.json
+!dorkmaster/data/dorks.json
 
 # --- Platform & Container Artifacts ---
 .aistudio/

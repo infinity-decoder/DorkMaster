@@ -8,6 +8,8 @@ if os.path.exists("README.md"):
     with open("README.md", "r", encoding="utf-8") as fh:
         long_description = fh.read()
 
+dorks_file = "data/dorks.json" if os.path.exists("data/dorks.json") else "dorkmaster/data/dorks.json"
+
 setup(
     name="dorkmaster",
     version="0.0.1",
@@ -39,7 +41,7 @@ setup(
     data_files=[
         ("share/applications", ["dorkmaster.desktop"]),
         ("share/icons/hicolor/128x128/apps", ["assets/dorkmaster.png"]),
-        ("share/dorkmaster", ["data/dorks.json"]),
+        ("share/dorkmaster", [dorks_file]),
     ],
     license="MIT",
     classifiers=[
