@@ -3,20 +3,24 @@
 </p>
 
 # DorkMaster 🔍🕶️
-> **Automated Google Dorking, OSINT Reconnaissance, and Intelligence Management Tool for Linux & Kali Security Suites.**
+> **Automated Google Dorking, OSINT Reconnaissance, and Intelligence Management Tool for Linux, Kali & BlackArch Security Suites.**
 
-[![Build and Release Linux Package](https://github.com/Owlopia/DorkMaster/actions/workflows/release.yml/badge.svg)](https://github.com/Owlopia/DorkMaster/actions/workflows/release.yml)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Kali%20%7C%20Debian%20%7C%20macOS%20%7C%20Windows-blue)](https://github.com/Owlopia/DorkMaster)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/Owlopia/DorkMaster/actions/workflows/main.yml"><img src="https://img.shields.io/github/actions/workflow/status/Owlopia/DorkMaster/main.yml?branch=main&label=Build%20%26%20Release&logo=githubactions&logoColor=white&style=flat-square" alt="Build and Release Linux Package"></a>
+  <a href="https://github.com/Owlopia/DorkMaster/stargazers"><img src="https://img.shields.io/github/stars/Owlopia/DorkMaster?style=flat-square&logo=github&color=f59e0b" alt="GitHub Stars"></a>
+  <a href="https://github.com/Owlopia/DorkMaster/releases"><img src="https://img.shields.io/github/v/release/Owlopia/DorkMaster?style=flat-square&color=06b6d4&logo=tag" alt="Latest Release"></a>
+  <a href="https://github.com/Owlopia/DorkMaster"><img src="https://img.shields.io/badge/Platform-Linux%20%7C%20Kali%20%7C%20Debian%20%7C%20Arch%20%7C%20BlackArch-3b82f6?style=flat-square&logo=linux&logoColor=white" alt="Platform"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10b981.svg?style=flat-square" alt="License: MIT"></a>
+</p>
 
-DorkMaster is a high-performance reconnaissance intelligence tool designed for automated Google Dork management, database synchronization, and stealth OSINT execution. Engineered specifically for Debian and Kali Linux environments, DorkMaster can be executed globally from any terminal path (`dorkmaster`), launched directly from desktop application menus (XFCE, GNOME, KDE, Kali Menu under *Information Gathering*), or compiled into a standard `.deb` package.
+DorkMaster is a high-performance reconnaissance intelligence tool designed for automated Google Dork management, database synchronization, and stealth OSINT execution. Engineered specifically for Debian, Kali Linux, and BlackArch environments, DorkMaster can be executed globally from any terminal path (`dorkmaster`), launched directly from desktop application menus (XFCE, GNOME, KDE, Kali Menu under *Information Gathering*), or installed natively via `.deb` and Arch packages.
 
 ---
 
 ## 🚀 Key Features
 
 ### 📡 Intelligence Gathering
-- **Full Database Synchronization**: Reliable scraping of the entire Exploit-DB (GHDB) repository (7,000+ dorks) via high-performance AJAX endpoints.
+- **Full Database Synchronization**: Reliable scraping of the entire Exploit-DB (GHDB) repository (7,900+ dorks) via high-performance endpoints.
 - **Incremental Updates**: Fetch newest daily and weekly dork additions without re-downloading the entire catalog.
 - **XDG Base Directory Compliance**: Safely stores local databases in `~/.local/share/dorkmaster/` and logs in `~/.local/state/dorkmaster/`, fully compliant with Linux multi-user standards.
 
@@ -36,18 +40,29 @@ DorkMaster is a high-performance reconnaissance intelligence tool designed for a
 
 ## 📦 Installation & Deployment Options
 
-### Method 1: Install Pre-Built Debian Package (`.deb`)
-Download the `.deb` package from the [Releases](https://github.com/Owlopia/DorkMaster/releases) page:
+### Method 1: Install Native Debian / Kali Package (`.deb`)
+Download the latest `DorkMaster_v*.deb` package from the [Releases](https://github.com/Owlopia/DorkMaster/releases) page:
 ```bash
-sudo dpkg -i DorkMaster_v0.0.1_all.deb
-sudo apt-get install -f   # Fix any missing dependencies if needed
+sudo dpkg -i DorkMaster_v0.0.1.deb
+# Or install with automatic dependency resolution:
+sudo apt install ./DorkMaster_v0.0.1.deb
 ```
 Now run:
 ```bash
 dorkmaster
 ```
 
-### Method 2: Install System-Wide via Pip
+### Method 2: Install on Arch Linux / BlackArch (`.pkg.tar.zst`)
+Download the latest `DorkMaster_v*.pkg.tar.zst` package from the [Releases](https://github.com/Owlopia/DorkMaster/releases) page:
+```bash
+sudo pacman -U DorkMaster_v0.0.1.pkg.tar.zst
+```
+Or build locally via PKGBUILD:
+```bash
+makepkg -si
+```
+
+### Method 3: Install System-Wide via Pip
 ```bash
 git clone https://github.com/Owlopia/DorkMaster.git
 cd DorkMaster
@@ -58,19 +73,7 @@ Or install in editable mode for development:
 pip install -e .
 ```
 
-### Method 3: Build Your Own `.deb` Package (Debian / Kali)
-Prerequisites:
-```bash
-sudo apt-get update
-sudo apt-get install -y python3-all python3-setuptools python3-stdeb debhelper dh-python
-```
-Build `.deb`:
-```bash
-python3 setup.py --command-packages=stdeb.command bdist_deb
-sudo dpkg -i deb_dist/dorkmaster_*.deb
-```
-
-### Method 4: Portable / Local Runner
+### Method 4: Portable Standalone Runner
 ```bash
 chmod +x run.sh
 ./run.sh
@@ -148,7 +151,7 @@ When browsing or searching dorks in DorkMaster, selecting any dork opens the **P
 
 ## 🎯 Main Interactive Menu Options
 
-1. **Search for Dorks**: Query 7,000+ local dorks by keyword or title.
+1. **Search for Dorks**: Query 7,900+ local dorks by keyword or title.
 2. **Check for New Dorks**: Fetch latest additions from GHDB.
 3. **Sync Complete GHDB Library**: Initial sync of all Exploit-DB dorks.
 4. **Browse Dorks by Category**: Explore organized vulnerability classes.
@@ -156,21 +159,6 @@ When browsing or searching dorks in DorkMaster, selecting any dork opens the **P
 6. **View System Statistics**: Inspect database count, last sync date, and paths.
 7. **Export Results**: Save output to JSON/CSV.
 8. **Terminate Session**: Gracefully exit the application.
-
----
-
-## 🔄 Automated CI/CD Releases (GitHub Actions)
-
-Creating a new release for Linux distributions is fully automated:
-1. Create and push a Git tag:
-   ```bash
-   git tag v0.0.1
-   git push origin v0.0.1
-   ```
-2. The GitHub Actions workflow in `.github/workflows/release.yml` triggers automatically:
-   - Builds the `.deb` Debian package using `stdeb`.
-   - Generates the standard Python wheel (`.whl`) and source tarball (`.tar.gz`).
-   - Creates a new GitHub Release with release notes and attaches all build artifacts.
 
 ---
 
@@ -182,6 +170,19 @@ Unauthorized access, automated querying, or exploitation against targets without
 
 ---
 
-**Author:** [infinitydecoder](https://github.com/infinity-decoder)  
-**Organization:** [Owlopia](https://github.com/Owlopia)  
-**License:** [MIT](LICENSE)
+## 👥 Author & Organization
+
+<div align="center">
+
+[![Author](https://img.shields.io/badge/Author-infinitydecoder-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/infinity-decoder)
+&nbsp;&nbsp;&nbsp;&nbsp;
+[![Organization](https://img.shields.io/badge/Organization-Owlopia-4F46E5?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Owlopia)
+&nbsp;&nbsp;&nbsp;&nbsp;
+[![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
+
+<br/>
+
+Developed with passion by [**infinitydecoder**](https://github.com/infinity-decoder) in [**Owlopia**](https://github.com/Owlopia) 🦉  
+*Empowering ethical hackers, security researchers, and OSINT analysts worldwide.*
+
+</div>
