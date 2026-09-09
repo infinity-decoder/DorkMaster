@@ -10,6 +10,8 @@ if os.path.exists("README.md"):
 
 dorks_file = "data/dorks.json" if os.path.exists("data/dorks.json") else "dorkmaster/data/dorks.json"
 
+icon_file = "assets/DorkMaster.png" if os.path.exists("assets/DorkMaster.png") else "assets/dorkmaster.png"
+
 setup(
     name="dorkmaster",
     version="0.0.1",
@@ -35,13 +37,13 @@ setup(
         "tqdm>=4.64.0",
     ],
     entry_points={
-        "console_scripts": [
-            "dorkmaster = dorkmaster.cli:main",
+        'console_scripts': [
+            'dorkmaster=dorkmaster.cli:main',
         ],
     },
     data_files=[
         ("share/applications", ["dorkmaster.desktop"]),
-        ("share/icons/hicolor/128x128/apps", ["assets/dorkmaster.png"]),
+        ("share/icons/hicolor/128x128/apps", [icon_file]),
         ("share/dorkmaster", [dorks_file]),
     ],
     license="MIT",

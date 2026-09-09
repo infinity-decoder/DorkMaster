@@ -116,7 +116,7 @@ jobs:
           if os.path.isfile("setup.py"):
               text = open("setup.py").read()
               text = re.sub(r'version\s*=\s*["\'][^"\']+["\']', f'version="{ver}"', text)
-              open(init_path, "w").write(text)
+              open("setup.py", "w").write(text)
 
           if os.path.isfile("PKGBUILD"):
               text = open("PKGBUILD").read()
@@ -157,14 +157,22 @@ jobs:
             cp dorkmaster/data/dorks.json "$PKG_BUILD/usr/share/dorkmaster/dorks.json"
           fi
 
-          printf '#!/usr/bin/env python3\nimport sys\nfrom dorkmaster.cli import main\n\nif __name__ == "__main__":\n    sys.exit(main())\n' > "$PKG_BUILD/usr/bin/dorkmaster"
+          # Wrapper script directing to dorkmaster.cli module
+          cat << 'EOF' > "$PKG_BUILD/usr/bin/dorkmaster"
+#!/usr/bin/env bash
+export PYTHONPATH="/usr/lib/python3/dist-packages:${PYTHONPATH}"
+exec python3 -m dorkmaster.cli "$@"
+EOF
           chmod 755 "$PKG_BUILD/usr/bin/dorkmaster"
 
           if [ -f "dorkmaster.desktop" ]; then
             cp dorkmaster.desktop "$PKG_BUILD/usr/share/applications/"
           fi
-          if [ -f "assets/dorkmaster.png" ]; then
-            cp assets/dorkmaster.png "$PKG_BUILD/usr/share/icons/hicolor/128x128/apps/"
+          if [ -f "assets/DorkMaster.png" ]; then
+            cp assets/DorkMaster.png "$PKG_BUILD/usr/share/icons/hicolor/128x128/apps/dorkmaster.png"
+            cp assets/DorkMaster.png "$PKG_BUILD/usr/share/icons/hicolor/128x128/apps/DorkMaster.png"
+          elif [ -f "assets/dorkmaster.png" ]; then
+            cp assets/dorkmaster.png "$PKG_BUILD/usr/share/icons/hicolor/128x128/apps/dorkmaster.png"
           fi
           if [ -f "LICENSE" ]; then
             cp LICENSE "$PKG_BUILD/usr/share/doc/dorkmaster/copyright"
@@ -172,8 +180,15 @@ jobs:
 
           printf "Package: dorkmaster\nVersion: %s\nSection: net\nPriority: optional\nArchitecture: all\nMaintainer: Owlopia & infinitydecoder <contact@owlopia.dev>\nDepends: python3, python3-requests, python3-bs4, python3-colorama, python3-tabulate, python3-pil, python3-tqdm, python3-pyfiglet\nDescription: Automated Google Dorking and OSINT Reconnaissance Tool\n DorkMaster is an automated Google Dorking and OSINT reconnaissance tool.\n" "${{ env.VER }}" > "$PKG_BUILD/DEBIAN/control"
 
+          # Ensure safe multi-user permissions so apt / _apt does not fail
+          find "$PKG_BUILD" -type d -exec chmod 755 {} +
+          find "$PKG_BUILD" -type f -exec chmod 644 {} +
+          chmod 755 "$PKG_BUILD/usr/bin/dorkmaster"
+          chmod 755 "$PKG_BUILD/DEBIAN"
+
           # Output filename: exactly DorkMaster_v${VER}.deb
           dpkg-deb --root-owner-group --build "$PKG_BUILD" "release_assets/${{ env.RELEASE_NAME }}.deb"
+          chmod 644 release_assets/*
           rm -rf build_deb
 
       - name: Build Arch Linux / BlackArch Package (.pkg.tar.zst)
@@ -195,14 +210,22 @@ jobs:
             cp dorkmaster/data/dorks.json "$ARCH_BUILD/usr/share/dorkmaster/dorks.json"
           fi
 
-          printf '#!/usr/bin/env python3\nimport sys\nfrom dorkmaster.cli import main\n\nif __name__ == "__main__":\n    sys.exit(main())\n' > "$ARCH_BUILD/usr/bin/dorkmaster"
+          # Wrapper script directing to dorkmaster.cli module
+          cat << 'EOF' > "$ARCH_BUILD/usr/bin/dorkmaster"
+#!/usr/bin/env bash
+export PYTHONPATH="/usr/lib/python3/dist-packages:${PYTHONPATH}"
+exec python3 -m dorkmaster.cli "$@"
+EOF
           chmod 755 "$ARCH_BUILD/usr/bin/dorkmaster"
 
           if [ -f "dorkmaster.desktop" ]; then
             cp dorkmaster.desktop "$ARCH_BUILD/usr/share/applications/"
           fi
-          if [ -f "assets/dorkmaster.png" ]; then
-            cp assets/dorkmaster.png "$ARCH_BUILD/usr/share/icons/hicolor/128x128/apps/"
+          if [ -f "assets/DorkMaster.png" ]; then
+            cp assets/DorkMaster.png "$ARCH_BUILD/usr/share/icons/hicolor/128x128/apps/dorkmaster.png"
+            cp assets/DorkMaster.png "$ARCH_BUILD/usr/share/icons/hicolor/128x128/apps/DorkMaster.png"
+          elif [ -f "assets/dorkmaster.png" ]; then
+            cp assets/dorkmaster.png "$ARCH_BUILD/usr/share/icons/hicolor/128x128/apps/dorkmaster.png"
           fi
           if [ -f "LICENSE" ]; then
             cp LICENSE "$ARCH_BUILD/usr/share/licenses/dorkmaster/LICENSE"

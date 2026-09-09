@@ -1,17 +1,23 @@
 <p align="center">
-   <img src="assets/dorkmaster.png" alt="Dork Master logo" width="220">
+   <img src="assets/DorkMaster.png" alt="DorkMaster logo" width="220">
 </p>
 
 # DorkMaster 🔍🕶️
 > **Automated Google Dorking, OSINT Reconnaissance, and Intelligence Management Tool for Linux, Kali & BlackArch Security Suites.**
 
 <p align="center">
-  <a href="https://github.com/Owlopia/DorkMaster/actions/workflows/main.yml"><img src="https://img.shields.io/github/actions/workflow/status/Owlopia/DorkMaster/main.yml?branch=main&label=Build%20%26%20Release&logo=githubactions&logoColor=white&style=flat-square" alt="Build and Release Linux Package"></a>
-  <a href="https://github.com/Owlopia/DorkMaster/stargazers"><img src="https://img.shields.io/github/stars/Owlopia/DorkMaster?style=flat-square&logo=github&color=f59e0b" alt="GitHub Stars"></a>
-  <a href="https://github.com/Owlopia/DorkMaster/releases"><img src="https://img.shields.io/github/v/release/Owlopia/DorkMaster?style=flat-square&color=06b6d4&logo=tag" alt="Latest Release"></a>
-  <a href="https://github.com/Owlopia/DorkMaster"><img src="https://img.shields.io/badge/Platform-Linux%20%7C%20Kali%20%7C%20Debian%20%7C%20Arch%20%7C%20BlackArch-3b82f6?style=flat-square&logo=linux&logoColor=white" alt="Platform"></a>
+  <a href="https://github.com/infinity-decoder/DorkMaster/releases"><img src="https://img.shields.io/github/v/release/infinity-decoder/DorkMaster?style=flat-square&color=06b6d4&logo=tag" alt="Latest Release"></a>
+  <a href="https://github.com/infinity-decoder/DorkMaster/stargazers"><img src="https://img.shields.io/github/stars/infinity-decoder/DorkMaster?style=flat-square&logo=github&color=f59e0b" alt="GitHub Stars"></a>
+  <a href="https://github.com/infinity-decoder/DorkMaster"><img src="https://img.shields.io/badge/Platform-Linux%20%7C%20Kali%20%7C%20Debian%20%7C%20Arch%20%7C%20BlackArch-3b82f6?style=flat-square&logo=linux&logoColor=white" alt="Platform"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10b981.svg?style=flat-square" alt="License: MIT"></a>
 </p>
+
+<p align="center">
+  Developed with passion by <strong>infinitydecoder</strong> in <strong>Owlopia</strong> 🦉<br/>
+  <em>Empowering ethical hackers, security researchers, and OSINT analysts worldwide.</em>
+</p>
+
+---
 
 DorkMaster is a high-performance reconnaissance intelligence tool designed for automated Google Dork management, database synchronization, and stealth OSINT execution. Engineered specifically for Debian, Kali Linux, and BlackArch environments, DorkMaster can be executed globally from any terminal path (`dorkmaster`), launched directly from desktop application menus (XFCE, GNOME, KDE, Kali Menu under *Information Gathering*), or installed natively via `.deb` and Arch packages.
 
@@ -41,21 +47,23 @@ DorkMaster is a high-performance reconnaissance intelligence tool designed for a
 ## 📦 Installation & Deployment Options
 
 ### Method 1: Install Native Debian / Kali Package (`.deb`)
-Download the latest `DorkMaster_v*.deb` package from the [Releases](https://github.com/Owlopia/DorkMaster/releases) page:
+Download the latest `DorkMaster_v*.deb` package from the [Releases](https://github.com/infinity-decoder/DorkMaster/releases) page:
 ```bash
-sudo dpkg -i DorkMaster_v0.0.1.deb
-# Or install with automatic dependency resolution:
-sudo apt install ./DorkMaster_v0.0.1.deb
+sudo dpkg -i DorkMaster_v0.0.3.deb
+# Or install with apt dependency resolution:
+sudo apt install ./DorkMaster_v0.0.3.deb
 ```
+> **Tip for Kali Linux / Debian users:** If installing from your user home directory shows an `_apt` permission warning (`pkgAcquire::Run (13: Permission denied)`), install directly with `sudo dpkg -i DorkMaster_v*.deb` or copy the file to `/tmp` before running `sudo apt install /tmp/DorkMaster_v*.deb`.
+
 Now run:
 ```bash
 dorkmaster
 ```
 
 ### Method 2: Install on Arch Linux / BlackArch (`.pkg.tar.zst`)
-Download the latest `DorkMaster_v*.pkg.tar.zst` package from the [Releases](https://github.com/Owlopia/DorkMaster/releases) page:
+Download the latest `DorkMaster_v*.pkg.tar.zst` package from the [Releases](https://github.com/infinity-decoder/DorkMaster/releases) page:
 ```bash
-sudo pacman -U DorkMaster_v0.0.1.pkg.tar.zst
+sudo pacman -U DorkMaster_v0.0.3.pkg.tar.zst
 ```
 Or build locally via PKGBUILD:
 ```bash
@@ -64,7 +72,7 @@ makepkg -si
 
 ### Method 3: Install System-Wide via Pip
 ```bash
-git clone https://github.com/Owlopia/DorkMaster.git
+git clone https://github.com/infinity-decoder/DorkMaster.git
 cd DorkMaster
 pip install .
 ```
@@ -170,7 +178,7 @@ Unauthorized access, automated querying, or exploitation against targets without
 
 ---
 
-## 👥 Author & Organization
+## 👥 About
 
 <div align="center">
 

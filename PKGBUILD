@@ -40,8 +40,11 @@ package() {
     if [ -f "dorkmaster.desktop" ]; then
         cp dorkmaster.desktop "${pkgdir}/usr/share/applications/"
     fi
-    if [ -f "assets/dorkmaster.png" ]; then
-        cp assets/dorkmaster.png "${pkgdir}/usr/share/icons/hicolor/128x128/apps/"
+    if [ -f "assets/DorkMaster.png" ]; then
+        cp assets/DorkMaster.png "${pkgdir}/usr/share/icons/hicolor/128x128/apps/dorkmaster.png"
+        cp assets/DorkMaster.png "${pkgdir}/usr/share/icons/hicolor/128x128/apps/DorkMaster.png"
+    elif [ -f "assets/dorkmaster.png" ]; then
+        cp assets/dorkmaster.png "${pkgdir}/usr/share/icons/hicolor/128x128/apps/dorkmaster.png"
     fi
     if [ -f "LICENSE" ]; then
         cp LICENSE "${pkgdir}/usr/share/licenses/dorkmaster/LICENSE"
